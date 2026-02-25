@@ -60,7 +60,7 @@ channel_labels
     #  'STE20a1.SN_92133']
 
 # %%'
-
+in
 for i in range(10) :
     sfreq = f.getSampleFrequency(i)
     print(sfreq)
