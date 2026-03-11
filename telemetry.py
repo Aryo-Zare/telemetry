@@ -8,7 +8,9 @@ import mne
 import numpy as np
 import matplotlib.pyplot as plt
 
-# %% read
+# %% pyedflib
+
+# read
 
 # Replace with your file path
 file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\nss-edf\convert\2508171\2508171 - 1.edf'
@@ -19,12 +21,12 @@ f = pyedflib.EdfReader(file_path)
 type(f)
     # Out[4]: pyedflib.edfreader.EdfReader
 
-# %% start-time
+# %%% start-date-time
 
 f.getStartdatetime()
     # Out[5]: datetime.datetime(2025, 8, 17, 9, 30, 41)
 
-# %%'
+# %%%%'
 
 # if you want to format it :
 
@@ -34,7 +36,7 @@ formatted_start_time = start_time.strftime("%Y-%m-%d %H:%M:%S")
 formatted_start_time
     # Out[7]: '2025-08-17 09:30:41'
 
-# %%'
+# %%%'
 
 # --- Get file and channel information ---
 n_channels = f.signals_in_file
@@ -42,7 +44,7 @@ n_channels = f.signals_in_file
 n_channels
     # Out[13]: 10
 
-# %%'
+# %%%'
 
 channel_labels = f.getSignalLabels()
 
@@ -59,8 +61,8 @@ channel_labels
     #  'STE20a1.SN_92133',
     #  'STE20a1.SN_92133']
 
-# %%'
-in
+# %%% sampling rate
+
 for i in range(10) :
     sfreq = f.getSampleFrequency(i)
     print(sfreq)
@@ -76,7 +78,7 @@ for i in range(10) :
     # 250.0
     # 1.0
 
-# %%'
+# %%%'
 
 # 1 is the index of this channel, according to :
     # the screenshot of the nss-to-edf converter
@@ -90,7 +92,7 @@ type(ecg_1)
     # Out[18]: numpy.ndarray
 
 
-# %%'
+# %%%'
 
 ecg_1.shape
     # Out[19]: (42542000,)
@@ -105,7 +107,7 @@ ecg_1.shape
 
 # 23 hours !
 
-# %%'
+# %%%'
 
 # blood pressure
 bp = f.readSignal(3)
@@ -118,7 +120,7 @@ bp.shape
 21271000 * 2
     # Out[6]: 42542000
 
-# %%'
+# %%%'
 
 temperature = f.readSignal(4)
 
@@ -128,45 +130,83 @@ temperature.shape
 85084 * 250
     # Out[9]: 21271000
 
-# %% slice
+# %%%  sample trace
+
+# plotting a slice of the trace.
+
+# %%%% slice
 
 ecg_1_slice = ecg_1[:5000]
 
 ecg_2_slice = ecg_2[:5000]
+
+# end of the trace.
+ecg_2_slice_end = ecg_2[-5000:]
+
 
 # the part with less signal drop-outs.
 ecg_2_slice_2 = ecg_2[3000:5000]
 
 bp_slice = bp[ 1500:2500 ]
 
-# %%'
+# %%%%'
 
+# sampling rate
 # frequency in Hz
 sfreq_Hz = 500
 
+# x-axis
 # time in seconds.
 time_s = np.arange( len( ecg_2_slice_2 )) / sfreq_Hz
 
-# %%'
+time_s_ecg_2_slice = np.arange( len( ecg_2_slice )) / sfreq_Hz
+
+
+time_s_ecg_2_slice_end = np.arange( len( ecg_2_slice_end )) / sfreq_Hz
+
+
+# %%%%'
 
 sfreq_Hz_bp = 250
 
+# x-axis
 # time in seconds.
 time_s_bp = np.arange( len( bp_slice )) / sfreq_Hz_bp
 
 
-# %% plot
+# %%%% plot
+
+plt.plot( time_s_ecg_2_slice , ecg_2_slice  )
 
 plt.plot( time_s , ecg_2_slice_2  )
 
+plt.plot( time_s_ecg_2_slice_end , ecg_2_slice_end  )
+
 plt.plot( time_s_bp , bp_slice  )
 
-# %%'
+plt.title( 'end of the trace' )
 
-plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\2508171_1_ecg_2_0.pdf' )
-plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\bp.pdf' )
+# %%%%'
 
-# %% log
+plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\2508171_1_ecg_2_end.pdf' )
+plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\magnified_voltage.pdf' )
+
+# %%%% noise channel
+
+# ecg-1 channel : noise.
+
+# x-axis
+# time in seconds.
+time_s_ecg_1_slice = np.arange( len( ecg_1_slice  )) / sfreq_Hz
+
+plt.plot( time_s_ecg_1_slice , ecg_1_slice  )
+
+# this was saved after magnifications.
+# possibly 50-Hz power-grid noise.
+plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\ecg_1.pdf' )
+
+
+# %%% log
 
 # reading the log file !
 
@@ -188,8 +228,10 @@ durations.shape
 descriptions.shape
     # Out[16]: (3425,)
 
-# %%'
+# %%%%'
 
+# these are 's' ( seconds from the onset of recording ) , according to the mne outputs ( below ).
+    # this is from pyedflib.
 onsets[:10]
     # Out[17]: 
     # array([  1.8899,   2.2029,   3.1399,  25.4369,  62.7339,  73.6249,
@@ -198,6 +240,7 @@ onsets[:10]
 durations[:10]
     # Out[18]: array([-1., -1., -1., -1., -1., -1., -1., -1., -1., -1.])
 
+# these are annotations.
 descriptions[:10]
     # Out[19]: 
     # array(['AP 3710100 / AN SN_920536131 -> DATA_RECEIVED = DATA_SAMPLES_LOST_AND_RESYNC',
@@ -212,7 +255,7 @@ descriptions[:10]
     #        'AP 3710100 / AN SN_921336130 -> DATA_RECEIVED = DATA_SAMPLES_LOST'],
     #       dtype='<U76')
 
-# %% log _ pyedflib
+# %%%% log _ pyedflib
 
 # this threw an error.
 
@@ -231,18 +274,142 @@ if len(onsets) > 0:
 else:
     print("❌ No annotations were found in this file.")
 
-# %%'
+# %%%%'
 
     # ---------------------------------------------------------------------------
     # AttributeError                            Traceback (most recent call last)
     # Cell In[20], line 5
     #       3     break
     #       4 # The description is returned as bytes, so we decode it to a string
-    # ----> 5 print(f"Time: {onset:.2f}s,  Duration: {duration:.2f}s,  Description: '{description.decode('utf-8')}'")
+    # ---> 5 print(f"Time: {onset:.2f}s,  Duration: {duration:.2f}s,  Description: '{description.decode('utf-8')}'")
     
     # AttributeError: 'numpy.str_' object has no attribute 'decode'
 
-# %%'
+# %%% neurokit
+
+import neurokit2 as nk
+
+signals , info = nk.ecg_process( ecg_2_slice , sampling_rate=500 )
+
+type(signals)
+    # Out[17]: pandas.DataFrame
+
+signals.shape
+    # Out[18]: (5000, 19)
+
+# as the initial phase of the trace is only drop-outs, the end of the trace is selected.
+signals[-10:]
+    # Out[22]: 
+    #        ECG_Raw  ECG_Clean   ECG_Rate  ECG_Quality  ECG_R_Peaks  ECG_P_Peaks  \
+    # 4990  0.324022   0.165731 146.341463     0.000000            0            0   
+    # 4991  0.060023   0.155274 146.341463     0.000000            0            0   
+    # 4992 -0.089976   0.140902 146.341463     0.000000            0            0   
+    # 4993 -0.241975   0.124233 146.341463     0.000000            0            0   
+    # 4994 -0.115975   0.109566 146.341463     0.000000            0            0   
+    # 4995 -0.201975   0.093818 146.341463     0.000000            0            0   
+    # 4996 -0.083976   0.079687 146.341463     0.000000            0            0   
+    # 4997 -0.207975   0.063549 146.341463     0.000000            0            0   
+    # 4998 -0.077976   0.046361 146.341463     0.000000            0            0   
+    # 4999 -0.185975   0.024537 146.341463     0.000000            0            0   
+    
+    #       ECG_P_Onsets  ECG_P_Offsets  ECG_Q_Peaks  ECG_R_Onsets  ECG_R_Offsets  \
+    # 4990             0              0            0             0              0   
+    # 4991             0              0            0             0              0   
+    # 4992             0              0            0             0              0   
+    # 4993             0              0            0             0              0   
+    # 4994             0              0            0             0              0   
+    # 4995             0              0            0             0              0   
+    # 4996             0              0            0             0              0   
+    # 4997             0              0            0             0              0   
+    # 4998             0              0            0             0              0   
+    # 4999             0              0            0             0              0   
+    
+    #       ECG_S_Peaks  ECG_T_Peaks  ECG_T_Onsets  ECG_T_Offsets  ECG_Phase_Atrial  \
+    # 4990            0            0             0              0               NaN   
+    # 4991            0            0             0              0               NaN   
+    # 4992            0            0             0              0               NaN   
+    # 4993            0            0             0              0               NaN   
+    # 4994            0            0             0              0               NaN   
+    # 4995            0            0             0              0               NaN   
+    # 4996            0            0             0              0               NaN   
+    # 4997            0            0             0              0               NaN   
+    # 4998            0            0             0              0               NaN   
+    # 4999            0            0             0              0               NaN   
+    
+    #       ECG_Phase_Completion_Atrial  ECG_Phase_Ventricular  \
+    # 4990                     0.000000                    NaN   
+    # 4991                     0.000000                    NaN   
+    # 4992                     0.000000                    NaN   
+    # 4993                     0.000000                    NaN   
+    # 4994                     0.000000                    NaN   
+    # 4995                     0.000000                    NaN   
+    # 4996                     0.000000                    NaN   
+    # 4997                     0.000000                    NaN   
+    # 4998                     0.000000                    NaN   
+    # 4999                     0.000000                    NaN   
+    
+    #       ECG_Phase_Completion_Ventricular  
+    # 4990                          0.000000  
+    # 4991                          0.000000  
+    # 4992                          0.000000  
+    # 4993                          0.000000  
+    # 4994                          0.000000  
+    # 4995                          0.000000  
+    # 4996                          0.000000  
+    # 4997                          0.000000  
+    # 4998                          0.000000  
+    # 4999                          0.000000  
+
+type(info)
+    # Out[19]: dict
+
+info
+    # Out[20]: 
+    # {'method_peaks': 'neurokit',
+    #  'method_fixpeaks': 'None',
+    #  'ECG_R_Peaks': array([ 868, 1143, 1381, 1539, 2610, 2806, 3011]),
+    #  'ECG_R_Peaks_Uncorrected': array([ 868, 1143, 1381, 1539, 2610, 2806, 3011]),
+    #  'ECG_fixpeaks_ectopic': [],
+    #  'ECG_fixpeaks_missed': [],
+    #  'ECG_fixpeaks_extra': [],
+    #  'ECG_fixpeaks_longshort': [],
+    #  'ECG_fixpeaks_method': 'kubios',
+    #  'ECG_fixpeaks_rr': array([0.71433333, 0.55      , 0.476     , 0.316     , 2.142     ,
+    #         0.392     , 0.41      ]),
+    #  'ECG_fixpeaks_drrs': array([-0.021802  , -0.0706356 , -0.03180751, -0.068773  ,  0.78487185,
+    #         -0.75220468,  0.00773696]),
+    #  'ECG_fixpeaks_mrrs': array([ 0.40613233,  0.1492738 ,  0.        , -0.64550834,  3.36067778,
+    #         -0.33889188, -0.13313609]),
+    #  'ECG_fixpeaks_s12': array([-0.0706356 , -0.03180751, -0.0706356 , -0.03180751, -0.068773  ,
+    #          0.00773696, -0.75220468]),
+    #  'ECG_fixpeaks_s22': array([-0.03180751, -0.03180751,  0.78487185,  0.78487185, -0.75220468,
+    #          0.00773696, -0.75220468]),
+    #  'ECG_fixpeaks_c1': 0.13,
+    #  'ECG_fixpeaks_c2': 0.17,
+    #  'sampling_rate': 500,
+    #  'ECG_P_Peaks': [nan, 1105, nan, nan, 2573, nan, 2931],
+    #  'ECG_P_Onsets': [nan, 1094, nan, nan, 2562, nan, 2923],
+    #  'ECG_P_Offsets': [nan, 1110, nan, nan, 2577, nan, 2942],
+    #  'ECG_Q_Peaks': [np.int64(850),
+    #   np.int64(1138),
+    #   nan,
+    #   np.int64(1521),
+    #   nan,
+    #   nan,
+    #   nan],
+    #  'ECG_R_Onsets': [nan, 1127, nan, nan, nan, nan, nan],
+    #  'ECG_R_Offsets': [884, nan, nan, 1559, nan, nan, 3036],
+    #  'ECG_S_Peaks': [np.int64(902),
+    #   nan,
+    #   np.int64(1521),
+    #   np.int64(1553),
+    #   np.int64(2630),
+    #   np.int64(2862),
+    #   nan],
+    #  'ECG_T_Peaks': [909, nan, nan, 1627, nan, nan, 3059],
+    #  'ECG_T_Onsets': [902, nan, nan, 1619, nan, nan, 3052],
+    #  'ECG_T_Offsets': [918, nan, nan, 1638, nan, nan, 3070]}
+
 # %% mne
 
 raw_mne = mne.io.read_raw_edf(file_path, preload=True)
@@ -254,7 +421,7 @@ raw_mne = mne.io.read_raw_edf(file_path, preload=True)
     #   raw_mne = mne.io.read_raw_edf(file_path, preload=True)
     # Reading 0 ... 42541999  =      0.000 ... 85083.998 secs...
 
-# %%'
+# %%% info _ mne
 
 # time of start of capturing !
 raw_mne.info
@@ -288,11 +455,11 @@ raw_mne.ch_names
 raw_mne.info['sfreq']
     # Out[22]: 500.0
 
-# %% log _ mne
+# %%% log _ mne
 
 annotations_mne = raw_mne.annotations
 
-# %%'
+# %%%'
 
 # Check if there are any annotations in the file
 if len(annotations_mne) > 0:
@@ -312,7 +479,7 @@ if len(annotations_mne) > 0:
 else:
     print("❌ No annotations were found in this file.")
 
-# %%'
+# %%%'
 
     # ✅ Found 3425 annotations in the file.
     
@@ -328,7 +495,192 @@ else:
     # Time: 548.01s,  Duration: 0.00s,  Description: 'AP 3710100 / AN SN_920536131 -> DATA_RECEIVED = DATA_SAMPLES_LOST'
     # Time: 746.98s,  Duration: 0.00s,  Description: 'AP 3710100 / AN SN_921336130 -> DATA_RECEIVED = DATA_SAMPLES_LOST'
 
-# %%'
+# %% drop-out
+
+
+# Let's find the most common value in the signal (the 'mode')
+# If there are many dropouts, the dropout value will be very frequent.
+
+np.unique( ecg_2 , return_counts=True)
+    # Out[22]: 
+    # (array([-4.16795051, -4.16595052, -4.16395053, ...,  2.76200677,
+    #          2.89000598,  3.0000053 ], shape=(2890,)),
+    #  array([4604311,      18,      19, ...,       1,       1,       1],
+    #        shape=(2890,)))
+
+vals , counts = np.unique( ecg_2 , return_counts=True)
+
+vals.shape
+    # Out[25]: (2890,)
+
+counts.shape
+
+dropout_value = vals[np.argmax(counts)]
+
+# The most frequent value (likely the dropout floor)
+dropout_value
+    # Out[23]: np.float64(-4.167950506165304)
+
+# %%% partition-sort
+
+first_10 = np.partition( ecg_2 , 10)[:10]
+first_10 = np.sort(first_10)
+
+first_10
+    # Out[29]: 
+    # array([-4.16795051, -4.16795051, -4.16795051, -4.16795051, -4.16795051,
+    #        -4.16795051, -4.16795051, -4.16795051, -4.16795051, -4.16795051])
+
+
+# %%% hist
+
+# note : ! : if you set te number of bins to '1000' : the plot will be blank !
+plt.hist(ecg_2, bins=100)
+
+plt.xlabel(' y-axis values in ECG trace ( voltage )' , loc='right' )
+plt.ylabel('number of samples' , loc='top' )
+
+plt.title( 'Distribution of voltage values of ECG trace.' 
+          '\n Finding-out signal drop-outs.'
+          )
+
+plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\hist.pdf' )
+
+# %%% quantitation
+
+# quantification of signal drop-out times.
+# sample : each 1 sample acquired in time ( x-axis ).
+drop_samples = ecg_2 < -3
+
+# tns : total number of samples.
+# sum of boolean values.
+drop_samples_tns = np.sum( drop_samples )
+
+drop_samples_tns
+    # Out[53]: np.int64(4614220)
+
+# pt : percent time
+drop_samples_pt  =  ( drop_samples_tns / ecg_2.size ) * 100
+
+
+drop_samples_pt
+    # Out[55]: np.float64(10.84626956889662)
+#  =>  signal drop-out occured in about 11 % of the data ( total recording time ).
+
+
+# %%% duration of each drop-out segment.
+
+# duration of each drop-out segment.
+
+changes = np.diff( drop_samples.astype(int) )
+
+changes[:10]
+    # Out[62]: array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+
+# sample indices at the start of the drop-outs.
+    # ( whenever the signal drops ).
+# [0] : extracts the array from the tuple.
+start = np.where(changes == 1)[0] + 1
+
+start.shape
+    # Out[64]: (18273,)
+
+start[:10]
+    # Out[65]: 
+    # array([ 1153,  1404,  2620,  2829,  2955, 12387, 12512, 12638, 15572,
+    #        31249])
+
+# sample indices at the end of the drop-outs.
+    # ( whenever the signal returns back to normal ).
+end = np.where(changes == -1)[0] + 1
+
+end.shape
+    # Out[67]: (18273,)
+
+# note : the 1st value ( 859 ).
+    # this signal already starts with a drop-out !
+    # that's why the index of 1st end-point (859) is earlier that the index of the first start-point ( above : 1153 ).
+    # you may take a look at the plot ( below ) to have a better understanding.
+    # a way to fix this : is to add 1 sample at the beginning of the trace equaling perhaps '0'.
+        # this fixes the occasion where signal-drop-out is present at the beginnin gof a trace !
+end[:10]
+    # Out[68]: 
+    # array([  859,  1362,  1530,  2787,  2871,  2997, 12469, 12595, 12721,
+    #        15697])
+
+# Then duration:
+durations = ( end - start ) / fs
+
+# %%% explore drop-outs
+
+drop_out_slice = ecg_2[ : 2000]
+
+plt.plot( drop_out_slice )
+
+plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\drop_out_slice.pdf' )
+
+
+# %%
+
+
+import pyedflib
+import numpy as np
+import pandas as pd
+from scipy import signal
+from datetime import timedelta
+
+# %%
+
+# --- 1. Load Data ---
+f = pyedflib.EdfReader("your_data.edf")
+start_time = f.getStartdatetime()
+sfreq = f.getSampleFrequency(0)
+ecg_raw = f.readSignal(0)
+f.close()
+
+# --- 2. Baseline Correction (High-pass filter) ---
+# Removes low-frequency oscillations below 1.0 Hz
+sos = signal.butter(4, 1.0, 'hp', fs=sfreq, output='sos')
+ecg_filtered = signal.sosfiltfilt(sos, ecg_raw)
+
+# --- 3. Binning Logic ---
+bin_size_sec = 30
+samples_per_bin = int(bin_size_sec * sfreq)
+total_bins = len(ecg_raw) // samples_per_bin
+
+results = []
+
+for i in range(total_bins):
+    start_idx = i * samples_per_bin
+    end_idx = start_idx + samples_per_bin
+    
+    # Get segments from both raw (for dropouts) and filtered (for peaks)
+    raw_segment = ecg_raw[start_idx:end_idx]
+    filtered_segment = ecg_filtered[start_idx:end_idx]
+    
+    # Calculate Timestamp for this bin
+    timestamp = start_time + timedelta(seconds=i * bin_size_sec)
+    
+    # Check for any dropout (value <= -4) in this segment
+    if np.any(raw_segment <= -4.0):
+        avg_hr = np.nan
+    else:
+        # Peak Detection Parameters:
+        # height: adjusts to your signal amplitude
+        # distance: ensures peaks aren't too close (e.g., 0.1s distance for max 600 BPM)
+        peaks, _ = signal.find_peaks(filtered_segment, height=0.1, distance=int(sfreq * 0.1))
+        
+        # Calculate BPM for this 30s segment
+        avg_hr = (len(peaks) / bin_size_sec) * 60
+
+    results.append([timestamp, avg_hr])
+
+# --- 4. Create Final DataFrame ---
+df = pd.DataFrame(results, columns=['Timestamp_Start', 'Average_Heart_Rate'])
+
+print(df.head(20))
+
+# %%
 
 
 
