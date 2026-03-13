@@ -15,8 +15,27 @@ import matplotlib.pyplot as plt
 # Replace with your file path
 file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\nss-edf\convert\2508171\2508171 - 1.edf'
 
+
+file_path_new = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4\conversion\STE20a1__SN_920336130_-ECG_1__2511201 - 1.edf'
+# this is the same date as above , another animal.
+file_path_2= r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4\conversion\STE20a1__SN_920336131_-ECG_1__2511201 - 1.edf'
+
+
+file_path_3= r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4\conversion\STE20a1__SN_920336131__ECG_1__2511211 - 1.edf'
+
+file_path_4= r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4\conversion\STE20a1__SN_920336131__ECG_1__2511221 - 1.edf'
+
+
+
 # Open the EDF file for reading
 f = pyedflib.EdfReader(file_path)
+f_new = pyedflib.EdfReader(file_path_new)
+
+f_2 = pyedflib.EdfReader(file_path_2)
+
+f_3 = pyedflib.EdfReader(file_path_3)
+f_4 = pyedflib.EdfReader(file_path_4)
+
 
 type(f)
     # Out[4]: pyedflib.edfreader.EdfReader
@@ -25,6 +44,19 @@ type(f)
 
 f.getStartdatetime()
     # Out[5]: datetime.datetime(2025, 8, 17, 9, 30, 41)
+
+# 1st day of the recording, after surgery, in the late evening.
+f_new.getStartdatetime()
+    # Out[46]: datetime.datetime(2025, 11, 20, 21, 5, 12)
+f_2.getStartdatetime()
+    # Out[57]: datetime.datetime(2025, 11, 20, 21, 5, 12)
+
+
+f_3.getStartdatetime()
+    # Out[58]: datetime.datetime(2025, 11, 21, 10, 21, 17)
+
+f_4.getStartdatetime()
+    # Out[59]: datetime.datetime(2025, 11, 22, 12, 45, 31)
 
 # %%%%'
 
@@ -78,14 +110,20 @@ for i in range(10) :
     # 250.0
     # 1.0
 
+f_3.getSampleFrequency(0)
+    # Out[63]: 500.0
+
 # %%%'
 
 # 1 is the index of this channel, according to :
     # the screenshot of the nss-to-edf converter
     # the sampling rates of each channel
-    
-ecg_1 = f.readSignal(1)
+
+
+ecg_1 = f.readSignal(1)     # noise
 ecg_2 = f.readSignal(2)
+
+ecg_3 = f_3.readSignal(0)
 
 
 type(ecg_1)
@@ -542,9 +580,10 @@ plt.ylabel('number of samples' , loc='top' )
 
 plt.title( 'Distribution of voltage values of ECG trace.' 
           '\n Finding-out signal drop-outs.'
+          '\n STE20a1__SN_920336131__ECG_1__2511211 '
           )
 
-plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\hist.pdf' )
+plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\hist_2.pdf' )
 
 # %%% quantitation
 
@@ -567,6 +606,15 @@ drop_samples_pt
     # Out[55]: np.float64(10.84626956889662)
 #  =>  signal drop-out occured in about 11 % of the data ( total recording time ).
 
+# %%%%'
+
+# checking the percentage signal drop-out in a newer recording.
+
+drop_samples = ecg_3 < -3
+drop_samples_tns = np.sum( drop_samples )
+drop_samples_pt  =  ( drop_samples_tns / ecg_3.size ) * 100
+drop_samples_pt
+    # Out[71]: np.float64(2.1118464551178118)
 
 # %%% duration of each drop-out segment.
 
@@ -620,7 +668,7 @@ plt.plot( drop_out_slice )
 plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\drop_out_slice.pdf' )
 
 
-# %%
+# %% analysis
 
 
 import pyedflib
@@ -629,7 +677,7 @@ import pandas as pd
 from scipy import signal
 from datetime import timedelta
 
-# %%
+# %%%'
 
 # --- 1. Load Data ---
 f = pyedflib.EdfReader("your_data.edf")
@@ -667,8 +715,11 @@ for i in range(total_bins):
     else:
         # Peak Detection Parameters:
         # height: adjusts to your signal amplitude
-        # distance: ensures peaks aren't too close (e.g., 0.1s distance for max 600 BPM)
-        peaks, _ = signal.find_peaks(filtered_segment, height=0.1, distance=int(sfreq * 0.1))
+        # distance: ensures peaks aren't too close (e.g., 0.1s distance for max 600 BPM).
+        peaks, _ = signal.find_peaks(filtered_segment, 
+                                     height=0.15, 
+                                     distance=int(sfreq * 0.1)
+                                     )
         
         # Calculate BPM for this 30s segment
         avg_hr = (len(peaks) / bin_size_sec) * 60
@@ -680,7 +731,336 @@ df = pd.DataFrame(results, columns=['Timestamp_Start', 'Average_Heart_Rate'])
 
 print(df.head(20))
 
+
+# %% signal processing
+
+from scipy import signal
+
+file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\nss-edf\convert\2508171\2508171 - 1.edf'
+
+# Open the EDF file for reading
+f = pyedflib.EdfReader(file_path)
+
+raw_trace = f.readSignal(2)
+
+# Sampling frequency ( Hz )
+sfreq = 500
+
+# %%%'
+
+raw_trace = ecg_2
+
+# %%% Notch Filter
+
+# unnecessary !
+
+# # Design the Notch Filter ---
+#     # w0: Center frequency to remove (50Hz for Germany)
+#     # Q: Quality factor (higher = narrower notch)
+#     # fs: Sampling frequency of your Stellar data
+# b_notch , a_notch = signal.iirnotch(
+#                                     w0=50.0, 
+#                                     Q=15.0, 
+#                                     fs=sfreq
+# )
+
+# # Apply the Notch Filter ---
+#     # x: The raw input signal
+#     # b, a: The coefficients calculated above
+# ecg_notched_Q_15 = signal.filtfilt(
+#                                 b=b_notch, 
+#                                 a=a_notch, 
+#                                 x=raw_trace
+# )
+
+# %%% band-pass
+
+# the fuzzy noise dissapeared with higher-badn=100.
+    # so this was not a 50 Hz power-grid noise !
+
+# Design the High-Pass Filter (Baseline Removal) ---
+    # N: Order of the filter (4 is usually sufficient)
+    # Wn: Critical frequency (1.0 Hz to remove baseline wander)
+    # btype: Type of filter ('high' or 'hp')
+    # fs: Sampling frequency
+    # output: 'sos' (Second-Order Sections) is more numerically stable than 'ba'
+sos_bp = signal.butter(
+                        N=4, 
+                        Wn=[1,80] ,
+                        btype='bandpass',    # 'highpass'
+                        fs=sfreq, 
+                        output='sos'
+)
+
+# Apply the High-Pass Filter ---
+    # sos: The filter design from above
+    # x: The notched signal from step 2
+ecg_final = signal.sosfiltfilt(
+                                sos=sos_bp, 
+                                x= raw_trace         # ecg_notched
+)
+
+# %%%'
+
+ecg_final.shape
+    # Out[23]: (42542000,)
+
+# %%% plot
+
+
+def plot_ecg_segment(signal, sfreq=500, start_s=0, duration_s=10):
+    start_idx = int(start_s * sfreq)
+    end_idx = int((start_s + duration_s) * sfreq)
+
+    segment = signal[start_idx:end_idx]
+    time_s = np.arange(len(segment)) / sfreq + start_s
+
+    plt.figure( figsize=(12, 4) )
+    plt.plot(time_s, segment)
+    plt.xlabel("Time (s)")
+    plt.ylabel("Amplitude")
+    plt.title(f"ECG segment ({start_s}s – {start_s + duration_s}s)")
+    plt.tight_layout()
+
+# %%%%'
+
+plot_ecg_segment(
+                    signal=ecg_final ,     # raw_trace, 
+                    sfreq=500, 
+                    start_s=10007, 
+                    duration_s=1
+)
+
+# %%%%'
+
+plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\high-band-80_3_.pdf' )
+
+# %%%%'
+
+# this is from before writing the function.
+
+
+# sfreq = 500
+
+# ecg_final_slice = ecg_final[:5000]
+
+# time_s_ecg_final_slice = np.arange( len( ecg_final_slice )) / sfreq
+
+# plt.plot( time_s_ecg_final_slice , ecg_final_slice )
+
+# plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\ecg_2_notch_bp_filtered__.pdf' )
+
+
+# %% sanity check
+
+# random trace : this randomly checks trace slices throughout the whole recording period, to detect various types of abnormal signals.
+
+import os
+import random
+import matplotlib.pyplot as plt
+
+# %%%'
+
+# Define your path (using raw string for Windows paths)
+save_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\random_trace'
+
+if not os.path.exists(save_path):
+    os.makedirs(save_path)
+
+file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\nss-edf\convert\2508171\2508171 - 1.edf'
+
+# Open the EDF file for reading
+f = pyedflib.EdfReader(file_path)
+
+
+# or = f.readSignal(2)    ( the raw signal )
+source_trace = ecg_final  # ecg_final
+
+sfreq = 500
+
+# %%%'
+
+duration_sec = 4
+samples_to_plot = int(duration_sec * sfreq)
+total_samples = len(source_trace)
+
+# Generate 20 random start indices, ensuring we don't go past the end of the file
+# varialbe '_' : it's equivalent to putting 'i' :
+    # since this variable ( or a potential 'i' ) is not used, & is only a counter, the convention is to put '_'.
+    # note : it's not a special keyword, but an ordinary variable as a convention.
+random_starts = [random.randint(0, total_samples - samples_to_plot) for _ in range(20)]
+
+for i, start_idx in enumerate(random_starts):
+    end_idx = start_idx + samples_to_plot
+    slice_data = source_trace[start_idx:end_idx]
+    
+    # Calculate time in seconds for the x-axis relative to start of file
+    time_axis = np.arange(start_idx, end_idx) / sfreq
+    
+    plt.figure(figsize=(12, 4))
+    plt.plot(time_axis, slice_data, linewidth=0.8)
+    plt.title(f"Random Slice {i+1} | Start: {time_axis[0]:.2f}s")
+    plt.xlabel("Time (s)")
+    plt.ylabel("Voltage (V)")
+    # plt.ylim(-4.5, 2.0) # Keeps the scale consistent to see dropouts
+    plt.tight_layout()
+    
+    # Save the plot
+    plt.savefig(os.path.join(save_path, f"random_slice_{i+1:02d}.pdf"))
+    plt.close() # Close to save memory
+
+print(f"Successfully saved 20 random plots to: {save_path}")
+
+# %% audit : peak detection
+
+# quality control of the algorithm.
+    # this finds peaks on random segments of a trace.
+    # plots the detected peaks over the trace.
+
+import os
+import random
+from pathlib import Path
+
+from pypdf import PdfWriter
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from scipy import signal, stats
+
+# %%% variables
+
+source_file = '2508171 - 1'
+
+ecg_2 = f.readSignal(2)
+
+ecg_raw = ecg_2
+
+save_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\audit _ peak detection'
+
+# %%%' 
+
+# --- 1. Configuration & Paths ---
+if not os.path.exists(save_path):
+    os.makedirs(save_path)
+
+# --- 2. Pre-processing (Whole Signal) ---
+# Interpolate dropouts to prevent filter ringing [cite: 59, 71]
+# For this audit, we'll use a simple version; in the final, we'll use the robust one.
+ecg_working = ecg_raw.copy()
+dropout_mask = ecg_working <= -4.0
+ecg_working[dropout_mask] = 0 # Temporary flat-fill for filtering
+
+# Band-pass Filter (1Hz to 100Hz) to remove drift and 'fuzz' [cite: 84, 119]
+sos = signal.butter(N=4, Wn=[1.0, 100.0], btype='bandpass', fs=sfreq, output='sos')
+ecg_filtered = signal.sosfiltfilt(sos, ecg_working)
+
+# --- 3. Random Audit Loop ---
+num_samples = 20
+duration_sec = 4
+samples_per_plot = int(duration_sec * sfreq)
+
+random_starts = [random.randint(0, len(ecg_raw) - samples_per_plot) for _ in range(num_samples)]
+
+# start_idx : in samples ( not s )
+for i, start_idx in enumerate(random_starts):
+    end_idx = start_idx + samples_per_plot
+    
+    # Get segment data
+    raw_seg = ecg_raw[start_idx:end_idx]
+    filt_seg = ecg_filtered[start_idx:end_idx]
+    
+    # a. Check for Dropouts in the raw trace [cite: 63, 76]
+    has_dropout = np.any(raw_seg <= -4.0)
+    
+    # b. Polarity Correction (Flip if inverted) using Skewness [cite: 134, 139]
+    if stats.skew(filt_seg) < 0:
+        filt_seg = filt_seg * -1
+        plot_label = "Flipped & Filtered"
+    else:
+        plot_label = "Filtered"
+
+    # c. Local Dynamic Peak Detection
+    seg_sd = np.std(filt_seg)
+    dynamic_prom = 3 * seg_sd
+    
+    peaks, props = signal.find_peaks(
+        filt_seg, 
+        prominence=dynamic_prom, 
+        distance=int(sfreq * 0.1), # 100ms refractory period
+        height=-np.inf, 
+        width=0
+    )
+
+    # --- 4. Plotting ---
+    time_axis = np.arange(0, duration_sec, 1/sfreq)
+    
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
+    
+    # Top Plot: Raw Data (to see dropouts/artifacts) [cite: 59, 71]
+    ax1.plot(time_axis, raw_seg, color='gray', alpha=0.6, label='Raw Signal')
+    ax1.set_title(
+                    f'source file : {source_file}'
+                    f"\n Validation Slice {i+1} | Start Time Sample-Index : {start_idx}"
+                  )
+    ax1.set_ylabel("Voltage (V)")
+    ax1.legend(loc='upper right')
+    if has_dropout:
+        ax1.text(0.5, 0.5, 'DROPOUT DETECTED', transform=ax1.transAxes, 
+                 color='red', fontsize=20, ha='center', fontweight='bold')
+
+    # Bottom Plot: Processed Data + Detected Peaks
+    ax2.plot(time_axis, filt_seg, color='tab:blue', label=plot_label)
+    ax2.plot(time_axis[peaks], filt_seg[peaks], "x", color='red', label='Detected R-Peaks')
+    
+    # Label each peak with its Heart Rate (BPM) based on instantaneous interval
+    if len(peaks) > 1:
+        intervals = np.diff(peaks) / sfreq
+        instant_bpm = 60 / intervals
+        for p_idx, bpm in zip(peaks[1:], instant_bpm):
+            ax2.annotate(f"{int(bpm)}", (time_axis[p_idx], filt_seg[p_idx]), 
+                         textcoords="offset points", xytext=(0,10), ha='center', fontsize=8)
+
+    ax2.set_ylabel("Relative Voltage")
+    ax2.set_xlabel("Time in Segment (s)")
+    ax2.legend(loc='upper right')
+    
+    plt.tight_layout()
+    plt.savefig(os.path.join(save_path, f"validation_{i+1:02d}.pdf"))
+    plt.close()
+
+print(f"Audit complete. Please check the 20 plots in: {save_path}")
+
+#---- merge pdfs
+
+folder = Path( save_path )
+output = folder / "merged_output.pdf"
+
+writer = PdfWriter()
+
+# folder.glob("*.pdf") :
+    # it merges only the PDFs in the immediate folder, not PDFs inside subfolders.
+for pdf in sorted(folder.glob("*.pdf")):
+    writer.append(str(pdf))
+
+with open(output, "wb") as f:
+    writer.write(f)
+
+print("PDFs merged successfully.")
+
 # %%
 
+
+segment = ecg_final[10007:10008]
+
+peaks, _ = signal.find_peaks(filtered_segment, 
+                             height=0.15, 
+                             distance=int(sfreq * 0.1)
+                             )
+        
+
+# note : after signal-processing : notch & high-pass fiter : I don't see 
+
+# %%
 
 
