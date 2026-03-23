@@ -930,15 +930,20 @@ from scipy import signal, stats
 
 # %%% variables
 
-source_file = '2508171 - 1'
 
-ecg_2 = f.readSignal(2)
+source_file = 'STE20a1__SN_920336131__ECG_1__2511221'
+# '2508171 - 1'   # the old file.
 
-ecg_raw = ecg_2
+ecg_raw = f.readSignal(2)
+ecg_raw = f_3.readSignal(0)
+ecg_raw = f_4.readSignal(0)
+
+# sampling frequency ( Hz )
+sfreq = 500
 
 save_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\audit _ peak detection'
 
-# %%%' 
+# %%% process
 
 # --- 1. Configuration & Paths ---
 if not os.path.exists(save_path):
@@ -948,16 +953,20 @@ if not os.path.exists(save_path):
 # Interpolate dropouts to prevent filter ringing [cite: 59, 71]
 # For this audit, we'll use a simple version; in the final, we'll use the robust one.
 ecg_working = ecg_raw.copy()
-dropout_mask = ecg_working <= -4.0
+dropout_mask = ecg_working <= -3.0
 ecg_working[dropout_mask] = 0 # Temporary flat-fill for filtering
 
-# Band-pass Filter (1Hz to 100Hz) to remove drift and 'fuzz' [cite: 84, 119]
+# Band-pass Filter (1Hz to 100Hz) to remove drift and 'fuzz'.
 sos = signal.butter(N=4, Wn=[1.0, 100.0], btype='bandpass', fs=sfreq, output='sos')
 ecg_filtered = signal.sosfiltfilt(sos, ecg_working)
 
 # --- 3. Random Audit Loop ---
+# number of example slices of trace.
 num_samples = 20
-duration_sec = 4
+# each segment has a duration of 4 s.
+    # this is only for plotting & visualization.
+    # the practical segmentaion should be either /30s or at the start time-stamps of video recordings.
+duration_sec = 4  
 samples_per_plot = int(duration_sec * sfreq)
 
 random_starts = [random.randint(0, len(ecg_raw) - samples_per_plot) for _ in range(num_samples)]
@@ -971,25 +980,28 @@ for i, start_idx in enumerate(random_starts):
     filt_seg = ecg_filtered[start_idx:end_idx]
     
     # a. Check for Dropouts in the raw trace [cite: 63, 76]
-    has_dropout = np.any(raw_seg <= -4.0)
+    has_dropout = np.any(raw_seg <= -3.0)
     
     # b. Polarity Correction (Flip if inverted) using Skewness [cite: 134, 139]
     if stats.skew(filt_seg) < 0:
-        filt_seg = filt_seg * -1
+        filt_seg = filt_seg * -1   # flip the signal.
         plot_label = "Flipped & Filtered"
     else:
         plot_label = "Filtered"
 
     # c. Local Dynamic Peak Detection
     seg_sd = np.std(filt_seg)
+    
+    # prominence of the peak.
+        # this is calculated per-segment to dynamically adjust for signal quality.
     dynamic_prom = 3 * seg_sd
     
     peaks, props = signal.find_peaks(
         filt_seg, 
         prominence=dynamic_prom, 
         distance=int(sfreq * 0.1), # 100ms refractory period
-        height=-np.inf, 
-        width=0
+        height=-np.inf, # this parameter is only present to retrieve actual peak heights in the returned properties dictionary.
+        width=0  #  # this parameter is only present to retrieve actual peak widths in the returned properties dictionary.
     )
 
     # --- 4. Plotting ---
@@ -1004,7 +1016,7 @@ for i, start_idx in enumerate(random_starts):
                     f"\n Validation Slice {i+1} | Start Time Sample-Index : {start_idx}"
                   )
     ax1.set_ylabel("Voltage (V)")
-    ax1.legend(loc='upper right')
+    ax1.legend(loc='lower right')
     if has_dropout:
         ax1.text(0.5, 0.5, 'DROPOUT DETECTED', transform=ax1.transAxes, 
                  color='red', fontsize=20, ha='center', fontweight='bold')
@@ -1023,7 +1035,7 @@ for i, start_idx in enumerate(random_starts):
 
     ax2.set_ylabel("Relative Voltage")
     ax2.set_xlabel("Time in Segment (s)")
-    ax2.legend(loc='upper right')
+    ax2.legend(loc='lower right', frameon=True, framealpha=0.8, fontsize='small')
     
     plt.tight_layout()
     plt.savefig(os.path.join(save_path, f"validation_{i+1:02d}.pdf"))
@@ -1051,15 +1063,6 @@ print("PDFs merged successfully.")
 # %%
 
 
-segment = ecg_final[10007:10008]
-
-peaks, _ = signal.find_peaks(filtered_segment, 
-                             height=0.15, 
-                             distance=int(sfreq * 0.1)
-                             )
-        
-
-# note : after signal-processing : notch & high-pass fiter : I don't see 
 
 # %%
 
