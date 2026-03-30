@@ -3,7 +3,7 @@
 # %%'
 
 import pyedflib
-import mne
+# import mne
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -11,6 +11,9 @@ import matplotlib.pyplot as plt
 # %% pyedflib
 
 # read
+
+# %%% 24-h recrodings
+
 
 # Replace with your file path
 file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\nss-edf\convert\2508171\2508171 - 1.edf'
@@ -25,7 +28,13 @@ file_path_3= r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_ts
 
 file_path_4= r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4\conversion\STE20a1__SN_920336131__ECG_1__2511221 - 1.edf'
 
+# %%%  terminal experiment.
 
+# recordings during the terminal experiment ( sacrifice ).
+
+file_path_bach_4_sacrifice_cage_2 = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4\conversion\sacrifice\2512054__SN_920336131__.edf'
+
+# %%%'
 
 # Open the EDF file for reading
 f = pyedflib.EdfReader(file_path)
@@ -36,6 +45,7 @@ f_2 = pyedflib.EdfReader(file_path_2)
 f_3 = pyedflib.EdfReader(file_path_3)
 f_4 = pyedflib.EdfReader(file_path_4)
 
+f_5 = pyedflib.EdfReader( file_path_bach_4_sacrifice_cage_2 )
 
 type(f)
     # Out[4]: pyedflib.edfreader.EdfReader
@@ -58,6 +68,9 @@ f_3.getStartdatetime()
 f_4.getStartdatetime()
     # Out[59]: datetime.datetime(2025, 11, 22, 12, 45, 31)
 
+f_5 = pyedflib.EdfReader( file_path_bach_4_sacrifice_cage_2 )
+
+
 # %%%%'
 
 # if you want to format it :
@@ -76,6 +89,11 @@ n_channels = f.signals_in_file
 n_channels
     # Out[13]: 10
 
+f_5.getStartdatetime()
+    # Out[32]: datetime.datetime(2025, 12, 5, 10, 37, 41)
+f_5.signals_in_file
+    # Out[9]: 3
+
 # %%%'
 
 channel_labels = f.getSignalLabels()
@@ -92,6 +110,9 @@ channel_labels
     #  'STE20a1.SN_92133',
     #  'STE20a1.SN_92133',
     #  'STE20a1.SN_92133']
+
+f_5.getSignalLabels()
+    # Out[10]: ['STE20a1.SN_92033', 'STE20a1.SN_92033', 'STE20a1.SN_92033']
 
 # %%% sampling rate
 
@@ -112,6 +133,16 @@ for i in range(10) :
 
 f_3.getSampleFrequency(0)
     # Out[63]: 500.0
+
+# %%
+
+for i in range(3) :
+    sfreq = f_5.getSampleFrequency(i)
+    print(sfreq)
+
+    # 1.0
+    # 500.0
+    # 1.0
 
 # %%%'
 
@@ -931,6 +962,7 @@ from scipy import signal, stats
 # %%% variables
 
 
+# this prints the file-name on top of each plot.
 source_file = 'STE20a1__SN_920336131__ECG_1__2511221'
 # '2508171 - 1'   # the old file.
 
@@ -945,22 +977,28 @@ save_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse
 
 # %%% process
 
-# --- 1. Configuration & Paths ---
+#---- Configuration & Paths
 if not os.path.exists(save_path):
     os.makedirs(save_path)
 
-# --- 2. Pre-processing (Whole Signal) ---
+#=========================================================
+
+#---- Pre-processing 
+# applied to the whole trace.
+
 # Interpolate dropouts to prevent filter ringing [cite: 59, 71]
 # For this audit, we'll use a simple version; in the final, we'll use the robust one.
 ecg_working = ecg_raw.copy()
 dropout_mask = ecg_working <= -3.0
-ecg_working[dropout_mask] = 0 # Temporary flat-fill for filtering
+ecg_working[dropout_mask] = 0 # Temporary flat-fill for filtering : to reduce ringing artifacts.
 
 # Band-pass Filter (1Hz to 100Hz) to remove drift and 'fuzz'.
 sos = signal.butter(N=4, Wn=[1.0, 100.0], btype='bandpass', fs=sfreq, output='sos')
 ecg_filtered = signal.sosfiltfilt(sos, ecg_working)
 
-# --- 3. Random Audit Loop ---
+#=========================================================
+
+#---- Random Audit Loop
 # number of example slices of trace.
 num_samples = 20
 # each segment has a duration of 4 s.
@@ -971,6 +1009,7 @@ samples_per_plot = int(duration_sec * sfreq)
 
 random_starts = [random.randint(0, len(ecg_raw) - samples_per_plot) for _ in range(num_samples)]
 
+#=========================================================
 # start_idx : in samples ( not s )
 for i, start_idx in enumerate(random_starts):
     end_idx = start_idx + samples_per_plot
@@ -994,6 +1033,7 @@ for i, start_idx in enumerate(random_starts):
     
     # prominence of the peak.
         # this is calculated per-segment to dynamically adjust for signal quality.
+        # hence it adjusts to low or high signal/noise , unlike defining a fixed peak height.
     dynamic_prom = 3 * seg_sd
     
     peaks, props = signal.find_peaks(
@@ -1004,7 +1044,8 @@ for i, start_idx in enumerate(random_starts):
         width=0  #  # this parameter is only present to retrieve actual peak widths in the returned properties dictionary.
     )
 
-    # --- 4. Plotting ---
+    #=================================================================
+    #---- Plotting
     time_axis = np.arange(0, duration_sec, 1/sfreq)
     
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
@@ -1043,6 +1084,7 @@ for i, start_idx in enumerate(random_starts):
 
 print(f"Audit complete. Please check the 20 plots in: {save_path}")
 
+#=================================================================
 #---- merge pdfs
 
 folder = Path( save_path )
@@ -1060,10 +1102,431 @@ with open(output, "wb") as f:
 
 print("PDFs merged successfully.")
 
-# %%
+# %% -  ( combined ( HR ))
+
+# don't use this :
+    # this combines signal processing & extraction of peaks + binning & calculating the average heart-rate.
+    # if a different bin-size is desired, the whole signal-processing ... should be repeated.
+
+# Creates 30 s bins  =>  calculates average heart rate in that bin.
+# Contains dataframes to save 
+    # average heart rates / bin
+    # peak locations & other properties.
+
+import numpy as np
+import pandas as pd
+from scipy import signal, stats
+from datetime import timedelta
+import pyedflib
+
+# %%% variables
+
+# Load Data
+
+file_path = "your_data_file.edf"
+f = pyedflib.EdfReader(file_path)
+start_time = f.getStartdatetime()
+sfreq = f.getSampleFrequency(0)
+ecg_raw = f.readSignal(0)
+f.close()
+
+# %%%'
+
+#---- Pre-processing (Whole Signal)
+# Pad dropouts with 0 to prevent filter ringing
+ecg_clean_for_filt = np.where(ecg_raw <= -4.0, 0, ecg_raw)
+
+# Band-pass filter: 1Hz (remove drift) to 100Hz (remove grid/EMG fuzz)
+sos = signal.butter(N=4, Wn=[1.0, 100.0], btype='bandpass', fs=sfreq, output='sos')
+ecg_filtered = signal.sosfiltfilt(sos, ecg_clean_for_filt)
+
+#=================================================================
+#---- Binning & Peak Detection
+
+bin_size_sec = 30
+samples_per_bin = int(bin_size_sec * sfreq)
+total_bins = len(ecg_raw) // samples_per_bin
+
+hr_averages = []
+master_peak_log = []
+
+#=================================================================
+
+for b_idx in range(total_bins):
+    start_s = b_idx * samples_per_bin   # s ( start_s ) : segment : start of the segment ( in samples ).
+    end_s = start_s + samples_per_bin
+    
+    raw_seg = ecg_raw[start_s:end_s]
+    filt_seg = ecg_filtered[start_s:end_s]
+    bin_timestamp = start_time + timedelta(seconds=b_idx * bin_size_sec)
+    
+    # Check for Dropout or Extreme Artifacts
+    if np.any(raw_seg <= -4.0) or np.any(np.abs(raw_seg) > 2.0):
+        hr_averages.append([bin_timestamp, np.nan])
+        continue
+    
+    # Universal Polarity Check
+    if stats.skew(filt_seg) < 0:
+        filt_seg = filt_seg * -1
+        
+    # Dynamic Peak Detection (Prominence = 4 * SD)
+    seg_sd = np.std(filt_seg)
+    peaks, props = signal.find_peaks(
+        filt_seg, 
+        prominence=4 * seg_sd, 
+        distance=int(sfreq * 0.1),
+        height=-np.inf, # Unlock height for logging
+        width=0         # Unlock width for logging
+    )
+    
+    # Calculate Average HR for this bin
+    avg_hr = (len(peaks) / bin_size_sec) * 60
+    hr_averages.append([bin_timestamp, avg_hr])
+    
+    # Log Individual Peak Parameters for Research Reserves
+    for i, p_idx in enumerate(peaks):
+        master_peak_log.append({
+            'timestamp': bin_timestamp + timedelta(seconds=p_idx/sfreq),
+            'amplitude': props['peak_heights'][i],
+            'prominence': props['prominences'][i],
+            'width_ms': (props['widths'][i] / sfreq) * 1000,
+            'bin_index': b_idx
+        })
+
+#=================================================================
+#---- Export Results
+
+df_hr = pd.DataFrame(hr_averages, columns=['Timestamp_Start', 'Average_Heart_Rate'])
+df_peaks = pd.DataFrame(master_peak_log)
+
+df_hr.to_csv("Heart_Rate_30s_Averages.csv", index=False)
+df_peaks.to_csv("Master_Peak_Log.csv.gz", index=False, compression='gzip')
+
+print("Analysis Complete. 30s averages and Master Peak Log have been saved.")
+
+# %% program-1
+
+import numpy as np
+import pandas as pd
+import pyedflib
+from scipy import signal, stats, ndimage
+from datetime import timedelta
+from pathlib import Path
+
+# %%%' path
+
+file_path = file_path_bach_4_sacrifice_cage_2
+#---- save path
+output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe')
+# output_dir.mkdir(parents=True, exist_ok=True)  # create if it doesn't exist
+
+# %%%'
+
+#---- Load Raw Telemetry Data
+
+# note : the file should not have been oepned before , otherwise :
+    # OSError: F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4\conversion\sacrifice\2512054__SN_920336131__.edf: 
+        # file has already been opened
+    # you should close the file if previously have been opened :
+        # f_5.close()
+f = pyedflib.EdfReader(file_path)
+start_time = f.getStartdatetime() 
+sfreq = f.getSampleFrequency(1)
+ecg_raw = f.readSignal(1)
+f.close()
+
+#---- Create the Dropout Map (Dataframe-3)
+# Identify zones where voltage is strictly < -3.5V [cite: 188, 207]
+is_dropout_global = ecg_raw <= -3.5
+diff = np.diff(is_dropout_global.astype(int))
+starts = np.where(diff == 1)[0]
+ends = np.where(diff == -1)[0]
+
+# Handle edge cases (if recording starts or ends with a dropout)
+if is_dropout_global[0]: starts = np.insert(starts, 0, 0)
+if is_dropout_global[-1]: ends = np.append(ends, len(ecg_raw)-1)
+
+# Apply 100ms safety buffer to the map for Program-2's future use.
+    # this is to avoid finding peaks over a potential ringing artifact.
+safety_buffer_sec = 0.1 
+buffer_samples = int(safety_buffer_sec * sfreq) # e.g., 50 samples at 500Hz
+total_samples = len(ecg_raw)
+
+dropout_zones = []
+
+for s, e in zip(starts, ends):
+    # Calculate buffered Sample Stamps (clamped to signal boundaries)
+    # Using max/min ensures we don't get negative indices or go past the end
+    s_buffered = max(0, s - buffer_samples)
+    e_buffered = min(total_samples - 1, e + buffer_samples)
+    
+    # Calculate buffered Timestamps based on these exact indices
+    t_start = start_time + timedelta(seconds=s_buffered / sfreq)
+    t_end = start_time + timedelta(seconds=e_buffered / sfreq)
+    
+    dropout_zones.append({
+        'start_sample': int(s_buffered), # Original integer index
+        'end_sample': int(e_buffered),   # Original integer index
+        'start_time': t_start,
+        'end_time': t_end
+    })
+
+# Save the map with both precision formats 
+df_dropouts = pd.DataFrame(dropout_zones)
+df_dropouts.to_csv( output_dir / "Dropout_Map_2.csv", index=False)
+
+#---- Pre-processing & Filtering (Whole Signal)
+# Fill dropouts with 0s to prevent 'ringing' artifacts in the filter [cite: 180, 181, 182]
+ecg_filled = np.where(is_dropout_global, 0, ecg_raw)
+
+# 1-80 Hz Band-pass filter 
+# 'sos' (Second-Order Sections) is used for maximum numerical stability
+sos_bp = signal.butter(N=4, Wn=[1.0, 80.0], btype='bandpass', fs=sfreq, output='sos')
+ecg_filtered = signal.sosfiltfilt(sos=sos_bp, x=ecg_filled)
 
 
 
-# %%
+#---- Granular Peak Extraction
+bin_size_sec = 30 # Internal processing window for dynamic SD/Skewness [cite: 183, 186]
+samples_per_bin = int(bin_size_sec * sfreq)
+total_bins = len(ecg_raw) // samples_per_bin
+buffer_samples = int(safety_buffer_sec * sfreq) # 100ms in samples
+
+master_peak_log = []
+
+for b_idx in range(total_bins):
+    start_idx = b_idx * samples_per_bin   # sample_index of the start of the current ( iterated ) bin.
+    end_idx = start_idx + samples_per_bin
+    
+    raw_seg = ecg_raw[start_idx:end_idx]
+    filt_seg = ecg_filtered[start_idx:end_idx]
+    # time-delta : how much the bin is far from the start time of aquisition.
+    bin_timestamp = start_time + timedelta(seconds=b_idx * bin_size_sec)
+    
+    # A. Create a buffered 'Forbidden Mask' for this bin
+    # We dilate the dropout zones by 100ms to hide edge transients
+    is_dropout_seg = raw_seg <= -3.5
+    forbidden_mask = ndimage.binary_dilation(
+        is_dropout_seg, 
+        structure=np.ones(buffer_samples * 2 + 1)
+    )
+    clean_mask = ~forbidden_mask
+    
+    
+
+    # B. Skip bin if it contains no clean data (less than 1s)
+    if np.sum(clean_mask) < (sfreq * 1):
+        continue
+
+    # C. Measure Skewness & SD ONLY on buffered clean data 
+    # This prevents artifacts from inflating your thresholds
+    seg_skew = stats.skew(filt_seg[clean_mask])
+    seg_sd = np.std(filt_seg[clean_mask])
+
+    # D. Polarity Check: Flip signal if skewness is negative [cite: 192]
+    if seg_skew < 0:
+        filt_seg = filt_seg * -1
+        
+    # E. Find Peaks & Properties using dynamic prominence (4 * SD) [cite: 195, 196]
+    # We unlock height and width to save them for future research
+    peaks, props = signal.find_peaks(
+        filt_seg, 
+        prominence=4 * seg_sd, 
+        distance=int(sfreq * 0.1), # 100ms refractory period
+        height=-np.inf, 
+        width=0
+    )
+    
+    # F. 
+    for i, p_idx in enumerate(peaks):
+        # Filter Peaks: Only save peaks that are in the clean zone
+            # this may not be absolutely needed as program-2 also avoids +/- 100ms around the drop-out zones.
+        if clean_mask[p_idx]:
+            
+            # sample_stamp : the sample_index from the start of the file for each peak.
+            # Calculate the absolute sample index (The 'Sample Stamp')
+            # This is the most original, accurate ground-truth location.
+            absolute_sample = start_idx + p_idx
+                # = ( b_idx * bin_size_sec * sfreq ) + p_idx
+            
+            master_peak_log.append({
+                'sample_stamp' : absolute_sample ,
+                # time-delta : how much this specific peak is distant from the start of that bin.
+                'timestamp': bin_timestamp + timedelta(seconds=p_idx/sfreq),
+                'amplitude_v': props['peak_heights'][i],
+                'prominence_v': props['prominences'][i],
+                'width_ms': (props['widths'][i] / sfreq) * 1000
+            })
+
+#---- Save the Master Peak Log (Dataframe-1)
+df_peaks = pd.DataFrame(master_peak_log)
+# Ensure sample_stamp is saved as an integer to prevent scientific notation.
+df_peaks['sample_stamp'] = df_peaks['sample_stamp'].astype(int)
+df_peaks.to_csv( output_dir / "Master_Peak_Log.csv.gz", index=False, compression='gzip')
+# Dropout_Map.csv : saved higer in th program.
+
+print("Program 1 Complete.")
+print(f"Master Peak Log: {len(df_peaks)} beats identified.")
+print("Dropout Map saved for Program 2 analysis.")
+
+# %%% out
+
+# Program 1 Complete.
+# Master Peak Log: 1105 beats identified.
+# Dropout Map saved for Program 2 analysis.
+
+
+df_dropouts
+        # Out[37]: 
+        #    start_sample  end_sample              start_time                end_time
+        # 0             0        1041 2025-12-05 10:37:41.000 2025-12-05 10:37:43.082
+        # 1        226449      226999 2025-12-05 10:45:13.898 2025-12-05 10:45:14.998
+    # note : if yo uopen it in excel, each cell may only show the minute-second !
+        # you should click on the cell  =>  the function-bar on top will show a more complete version.
+        # however, the sub-seconds are not visible there.
+
+df_peaks.shape
+    # Out[29]: (1105, 5)
+
+df_peaks[:10]
+    # Out[30]: 
+    #    sample_stamp               timestamp  amplitude_v  prominence_v  width_ms
+    # 0          1101 2025-12-05 10:37:43.202     0.484368      0.721350  9.013177
+    # 1          1188 2025-12-05 10:37:43.376     0.564310      0.817075  8.776676
+    # 2          1274 2025-12-05 10:37:43.548     0.568072      0.829985  8.832137
+    # 3          1361 2025-12-05 10:37:43.722     0.484357      0.738015  8.896035
+    # 4          1448 2025-12-05 10:37:43.896     0.465744      0.738688  9.087089
+    # 5          1533 2025-12-05 10:37:44.066     0.493679      0.773321  9.070266
+    # 6          1621 2025-12-05 10:37:44.242     0.593571      0.864803  8.746738
+    # 7          1707 2025-12-05 10:37:44.414     0.573133      0.834913  8.818648
+    # 8          1795 2025-12-05 10:37:44.590     0.596577      0.883905  9.050516
+    # 9          1883 2025-12-05 10:37:44.766     0.475522      0.715336  8.912181
+
+# %% program-2
+
+import pandas as pd
+from datetime import timedelta
+
+# %%% load _ path
+
+#---- Load the Data Created by Program 1
+source_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe')
+df_peaks = pd.read_csv( source_dir / "Master_Peak_Log.csv.gz", parse_dates=['timestamp'])
+df_drops = pd.read_csv( source_dir / "Dropout_Map.csv", parse_dates=['start', 'end'])
+
+#---- save path
+output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe')
+# output_dir.mkdir(parents=True, exist_ok=True)  # create if it doesn't exist
+
+# %%%'
+
+#---- Set Flexible Timing Parameters
+# these 2 are the same, with different 'types'.
+    # you should keep them the same : change them simultansously.
+bin_size_str = "10S" 
+bin_duration_sec = 10
+
+# Define your custom start time (e.g., 14:00:00 on the day of recording)
+# If you want to use the original start time, just set this to None.
+custom_start_time = pd.Timestamp("2026-03-30 14:00:00") 
+
+#---- Filter and Align (time) the Data
+if custom_start_time is not None:
+    # Discard any peaks that occurred before our custom start time
+    df_peaks = df_peaks[df_peaks['timestamp'] >= custom_start_time]
+    
+    # Anchor the binning grid to the custom start time
+    # 'origin' ensures the first bin is [custom_start_time, custom_start_time + 20s)
+    bin_groups = df_peaks.set_index('timestamp').resample(bin_size_str, origin=custom_start_time)
+else:  # this will just start binning from the start-time of recording.
+    bin_groups = df_peaks.set_index('timestamp').resample(bin_size_str)
+
+#---- Perform Binning & Overlap Checking
+results = []
+
+for bin_start, peak_data in bin_groups:
+    bin_end = bin_start + timedelta(seconds=bin_duration_sec)
+    
+    # Temporal intersection check: Does this bin hit any dropout zone? 
+    overlaps = df_drops[(bin_start < df_drops['end_time']) & (bin_end > df_drops['start_time'])]
+    
+    if not overlaps.empty:
+        avg_hr = None # Data is corrupt in this window [cite: 177, 210]
+    else:
+        # Calculate Heart Rate: (Peaks / Seconds) * 60
+        peak_count = len(peak_data) # [cite: 204]
+        avg_hr = (peak_count / bin_duration_sec) * 60
+
+    results.append({
+        'Bin_Start': bin_start,
+        'Bin_End': bin_end,
+        'Average_Heart_Rate_BPM': avg_hr
+    })
+
+#---- Export Results
+df_final = pd.DataFrame(results)
+output_filename = f"HR_Analysis_{bin_size_str}_from_{custom_start_time.strftime('%H%M') if custom_start_time else 'start'}.csv"
+df_final.to_csv(output_filename, index=False)
+
+print(f"Analysis complete. \n Bins anchored to {custom_start_time if custom_start_time else 'recording start'}.")
+
+
+# %% shift
+
+# this tests the shift in time relative to Windows.
+
+from datetime import datetime, timedelta
+
+# %%% add
+
+# notocord : bottom of the window.
+    # start_time + elapsed_time
+
+def add_time(t1, t2):
+    base = datetime.strptime(t1, "%H:%M:%S")
+    h, m, s = map(int, t2.split(":"))
+    return (base + timedelta(hours=h, minutes=m, seconds=s)).time()
+
+# F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4\screenshot\2025-12-05
+print(add_time("10:37:41", "00:05:57"))
+print(add_time("11:10:06", "00:08:02"))
+print(add_time("11:45:18", "00:08:00"))
+
+    # 10:43:38
+    # 11:18:08
+    # 11:53:18
+
+# %%% subtract
+
+# current time differences : 
+        # notocord ( A )  -  Windows ( Aw )
+
+def time_diff(t1, t2):
+    t1_dt = datetime.strptime(t1, "%H:%M:%S")
+    t2_dt = datetime.strptime(t2, "%H:%M:%S")
+    return t1_dt - t2_dt
+
+# Given times
+# F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4\screenshot\2025-12-05
+A  = "10:43:38"
+Aw = "09:46:51"
+
+B  = "11:18:08"
+Bw = "10:21:25"
+
+C  = "11:53:18"
+Cw = "10:56:33"
+
+print(time_diff(A, Aw))
+print(time_diff(B, Bw))
+print(time_diff(C, Cw))
+
+    # 0:56:47
+    # 0:56:43
+    # 0:56:45
+
+# %%'
+
+
 
 
