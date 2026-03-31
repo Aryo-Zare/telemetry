@@ -134,7 +134,7 @@ for i in range(10) :
 f_3.getSampleFrequency(0)
     # Out[63]: 500.0
 
-# %%
+# %%'
 
 for i in range(3) :
     sfreq = f_5.getSampleFrequency(i)
@@ -199,11 +199,11 @@ temperature.shape
 85084 * 250
     # Out[9]: 21271000
 
-# %%%  sample trace
+# %%  sample trace
 
 # plotting a slice of the trace.
 
-# %%%% slice
+# %%% slice
 
 ecg_1_slice = ecg_1[:5000]
 
@@ -218,7 +218,7 @@ ecg_2_slice_2 = ecg_2[3000:5000]
 
 bp_slice = bp[ 1500:2500 ]
 
-# %%%%'
+# %%%'
 
 # sampling rate
 # frequency in Hz
@@ -234,7 +234,7 @@ time_s_ecg_2_slice = np.arange( len( ecg_2_slice )) / sfreq_Hz
 time_s_ecg_2_slice_end = np.arange( len( ecg_2_slice_end )) / sfreq_Hz
 
 
-# %%%%'
+# %%%'
 
 sfreq_Hz_bp = 250
 
@@ -243,7 +243,7 @@ sfreq_Hz_bp = 250
 time_s_bp = np.arange( len( bp_slice )) / sfreq_Hz_bp
 
 
-# %%%% plot
+# %%% plot
 
 plt.plot( time_s_ecg_2_slice , ecg_2_slice  )
 
@@ -255,12 +255,12 @@ plt.plot( time_s_bp , bp_slice  )
 
 plt.title( 'end of the trace' )
 
-# %%%%'
+# %%%'
 
 plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\2508171_1_ecg_2_end.pdf' )
 plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\magnified_voltage.pdf' )
 
-# %%%% noise channel
+# %%% noise channel
 
 # ecg-1 channel : noise.
 
@@ -275,7 +275,7 @@ plt.plot( time_s_ecg_1_slice , ecg_1_slice  )
 plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\ecg_1.pdf' )
 
 
-# %%% log
+# %% log
 
 # reading the log file !
 
@@ -297,7 +297,7 @@ durations.shape
 descriptions.shape
     # Out[16]: (3425,)
 
-# %%%%'
+# %%%'
 
 # these are 's' ( seconds from the onset of recording ) , according to the mne outputs ( below ).
     # this is from pyedflib.
@@ -324,7 +324,7 @@ descriptions[:10]
     #        'AP 3710100 / AN SN_921336130 -> DATA_RECEIVED = DATA_SAMPLES_LOST'],
     #       dtype='<U76')
 
-# %%%% log _ pyedflib
+# %%% log _ pyedflib
 
 # this threw an error.
 
@@ -343,7 +343,7 @@ if len(onsets) > 0:
 else:
     print("❌ No annotations were found in this file.")
 
-# %%%%'
+# %%%'
 
     # ---------------------------------------------------------------------------
     # AttributeError                            Traceback (most recent call last)
@@ -354,7 +354,7 @@ else:
     
     # AttributeError: 'numpy.str_' object has no attribute 'decode'
 
-# %%% neurokit
+# %% neurokit
 
 import neurokit2 as nk
 
@@ -815,6 +815,7 @@ raw_trace = ecg_2
     # btype: Type of filter ('high' or 'hp')
     # fs: Sampling frequency
     # output: 'sos' (Second-Order Sections) is more numerically stable than 'ba'
+    # bp ; bandpass
 sos_bp = signal.butter(
                         N=4, 
                         Wn=[1,80] ,
@@ -856,15 +857,15 @@ def plot_ecg_segment(signal, sfreq=500, start_s=0, duration_s=10):
 # %%%%'
 
 plot_ecg_segment(
-                    signal=ecg_final ,     # raw_trace, 
+                    signal= ecg_filtered ,  #ecg_final ,     # raw_trace, 
                     sfreq=500, 
-                    start_s=10007, 
-                    duration_s=1
+                    start_s=230, 
+                    duration_s=180
 )
 
 # %%%%'
 
-plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\high-band-80_3_.pdf' )
+plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\batch_4\heap.pdf' )
 
 # %%%%'
 
@@ -1215,6 +1216,8 @@ from pathlib import Path
 
 # %%%' path
 
+file_path_bach_4_sacrifice_cage_2 = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4\conversion\sacrifice\2512054__SN_920336131__.edf'
+
 file_path = file_path_bach_4_sacrifice_cage_2
 #---- save path
 output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe')
@@ -1230,12 +1233,25 @@ output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notoco
     # you should close the file if previously have been opened :
         # f_5.close()
 f = pyedflib.EdfReader(file_path)
-start_time = f.getStartdatetime() 
+raw_start_time = f.getStartdatetime() # The 'Notocord' time
 sfreq = f.getSampleFrequency(1)
 ecg_raw = f.readSignal(1)
 f.close()
 
-#---- Create the Dropout Map (Dataframe-3)
+#===========================================================
+#---- shift
+# Apply Windows-Time Correction 
+
+# Since Edf-time - Windows-time = 56:47,
+# Windows-time = Edf-time - 56:47
+time_mismatch = timedelta(minutes=56, seconds=47)
+start_time = raw_start_time - time_mismatch # This is now your Windows time Reference
+
+print(f"Original EDF Start: {raw_start_time}")
+print(f"Corrected Windows Start: {start_time}")
+
+#===========================================================
+#---- Dropout Map (Dataframe-3)
 # Identify zones where voltage is strictly < -3.5V [cite: 188, 207]
 is_dropout_global = ecg_raw <= -3.5
 diff = np.diff(is_dropout_global.astype(int))
@@ -1273,8 +1289,9 @@ for s, e in zip(starts, ends):
 
 # Save the map with both precision formats 
 df_dropouts = pd.DataFrame(dropout_zones)
-df_dropouts.to_csv( output_dir / "Dropout_Map_2.csv", index=False)
+df_dropouts.to_csv( output_dir / "Dropout_Map_3.csv", index=False)
 
+#===========================================================
 #---- Pre-processing & Filtering (Whole Signal)
 # Fill dropouts with 0s to prevent 'ringing' artifacts in the filter [cite: 180, 181, 182]
 ecg_filled = np.where(is_dropout_global, 0, ecg_raw)
@@ -1285,7 +1302,7 @@ sos_bp = signal.butter(N=4, Wn=[1.0, 80.0], btype='bandpass', fs=sfreq, output='
 ecg_filtered = signal.sosfiltfilt(sos=sos_bp, x=ecg_filled)
 
 
-
+#===========================================================
 #---- Granular Peak Extraction
 bin_size_sec = 30 # Internal processing window for dynamic SD/Skewness [cite: 183, 186]
 samples_per_bin = int(bin_size_sec * sfreq)
@@ -1358,11 +1375,12 @@ for b_idx in range(total_bins):
                 'width_ms': (props['widths'][i] / sfreq) * 1000
             })
 
+#===========================================================
 #---- Save the Master Peak Log (Dataframe-1)
 df_peaks = pd.DataFrame(master_peak_log)
 # Ensure sample_stamp is saved as an integer to prevent scientific notation.
 df_peaks['sample_stamp'] = df_peaks['sample_stamp'].astype(int)
-df_peaks.to_csv( output_dir / "Master_Peak_Log.csv.gz", index=False, compression='gzip')
+df_peaks.to_csv( output_dir / "Master_Peak_Log_2.csv.gz", index=False, compression='gzip')
 # Dropout_Map.csv : saved higer in th program.
 
 print("Program 1 Complete.")
@@ -1371,36 +1389,38 @@ print("Dropout Map saved for Program 2 analysis.")
 
 # %%% out
 
+# Original EDF Start: 2025-12-05 10:37:41
+# Corrected Windows Start: 2025-12-05 09:40:54
 # Program 1 Complete.
-# Master Peak Log: 1105 beats identified.
+# Master Peak Log: 946 ( me : initially : 1105 ) beats identified.
 # Dropout Map saved for Program 2 analysis.
 
 
 df_dropouts
-        # Out[37]: 
+        # Out[21]: 
         #    start_sample  end_sample              start_time                end_time
-        # 0             0        1041 2025-12-05 10:37:41.000 2025-12-05 10:37:43.082
-        # 1        226449      226999 2025-12-05 10:45:13.898 2025-12-05 10:45:14.998
+        # 0             0        1041 2025-12-05 09:40:54.000 2025-12-05 09:40:56.082
+        # 1        226449      226999 2025-12-05 09:48:26.898 2025-12-05 09:48:27.998
     # note : if yo uopen it in excel, each cell may only show the minute-second !
         # you should click on the cell  =>  the function-bar on top will show a more complete version.
         # however, the sub-seconds are not visible there.
 
 df_peaks.shape
-    # Out[29]: (1105, 5)
+    # Out[22]: (946, 5)
 
 df_peaks[:10]
-    # Out[30]: 
-    #    sample_stamp               timestamp  amplitude_v  prominence_v  width_ms
-    # 0          1101 2025-12-05 10:37:43.202     0.484368      0.721350  9.013177
-    # 1          1188 2025-12-05 10:37:43.376     0.564310      0.817075  8.776676
-    # 2          1274 2025-12-05 10:37:43.548     0.568072      0.829985  8.832137
-    # 3          1361 2025-12-05 10:37:43.722     0.484357      0.738015  8.896035
-    # 4          1448 2025-12-05 10:37:43.896     0.465744      0.738688  9.087089
-    # 5          1533 2025-12-05 10:37:44.066     0.493679      0.773321  9.070266
-    # 6          1621 2025-12-05 10:37:44.242     0.593571      0.864803  8.746738
-    # 7          1707 2025-12-05 10:37:44.414     0.573133      0.834913  8.818648
-    # 8          1795 2025-12-05 10:37:44.590     0.596577      0.883905  9.050516
-    # 9          1883 2025-12-05 10:37:44.766     0.475522      0.715336  8.912181
+    # Out[23]: 
+    #      sample_stamp               timestamp  amplitude_v  prominence_v  width_ms
+    # 159         15080 2025-12-05 09:41:24.160     0.654954      0.764685  7.720026
+    # 160         15166 2025-12-05 09:41:24.332     0.630342      0.910330  8.948962
+    # 161         15253 2025-12-05 09:41:24.506     0.573779      0.809840  8.732825
+    # 162         15340 2025-12-05 09:41:24.680     0.600332      0.845800  8.667174
+    # 163         15427 2025-12-05 09:41:24.854     0.600466      0.850464  8.701622
+    # 164         15513 2025-12-05 09:41:25.026     0.585453      0.856120  8.863439
+    # 165         15598 2025-12-05 09:41:25.196     0.593502      0.870499  8.744148
+    # 166         15685 2025-12-05 09:41:25.370     0.583278      0.851466  8.697559
+    # 167         15772 2025-12-05 09:41:25.544     0.578515      0.842532  8.830270
+    # 168         15858 2025-12-05 09:41:25.716     0.574684      0.832503  8.938483
 
 # %% program-2
 
@@ -1412,7 +1432,7 @@ from datetime import timedelta
 #---- Load the Data Created by Program 1
 source_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe')
 df_peaks = pd.read_csv( source_dir / "Master_Peak_Log.csv.gz", parse_dates=['timestamp'])
-df_drops = pd.read_csv( source_dir / "Dropout_Map.csv", parse_dates=['start', 'end'])
+df_dropouts = pd.read_csv( source_dir / "Dropout_Map_2.csv", parse_dates=['start', 'end'])
 
 #---- save path
 output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe')
@@ -1423,12 +1443,17 @@ output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notoco
 #---- Set Flexible Timing Parameters
 # these 2 are the same, with different 'types'.
     # you should keep them the same : change them simultansously.
-bin_size_str = "10S" 
+# 's' should not be capital, otherwise :
+    # ValueError: Invalid frequency: 10S. Failed to parse with error message: ValueError("Invalid frequency: S. 
+        # Failed to parse with error message: KeyError('S'). 
+        # Did you mean s?")
+bin_size_str = "10s" 
 bin_duration_sec = 10
 
 # Define your custom start time (e.g., 14:00:00 on the day of recording)
+    # = start of gassing.
 # If you want to use the original start time, just set this to None.
-custom_start_time = pd.Timestamp("2026-03-30 14:00:00") 
+custom_start_time = pd.Timestamp("2025-12-05 09:41:24") 
 
 #---- Filter and Align (time) the Data
 if custom_start_time is not None:
@@ -1448,7 +1473,7 @@ for bin_start, peak_data in bin_groups:
     bin_end = bin_start + timedelta(seconds=bin_duration_sec)
     
     # Temporal intersection check: Does this bin hit any dropout zone? 
-    overlaps = df_drops[(bin_start < df_drops['end_time']) & (bin_end > df_drops['start_time'])]
+    overlaps = df_dropouts[(bin_start < df_dropouts['end_time']) & (bin_end > df_dropouts['start_time'])]
     
     if not overlaps.empty:
         avg_hr = None # Data is corrupt in this window [cite: 177, 210]
@@ -1468,65 +1493,28 @@ df_final = pd.DataFrame(results)
 output_filename = f"HR_Analysis_{bin_size_str}_from_{custom_start_time.strftime('%H%M') if custom_start_time else 'start'}.csv"
 df_final.to_csv(output_filename, index=False)
 
-print(f"Analysis complete. \n Bins anchored to {custom_start_time if custom_start_time else 'recording start'}.")
+print(f"Analysis complete. \nBins anchored to {custom_start_time if custom_start_time else 'recording start'}.")
 
+# %%% out
 
-# %% shift
+# Analysis complete. 
+#  Bins anchored to 2025-12-05 09:41:24.
 
-# this tests the shift in time relative to Windows.
+df_final.shape
+    # Out[29]: (42, 3)
 
-from datetime import datetime, timedelta
-
-# %%% add
-
-# notocord : bottom of the window.
-    # start_time + elapsed_time
-
-def add_time(t1, t2):
-    base = datetime.strptime(t1, "%H:%M:%S")
-    h, m, s = map(int, t2.split(":"))
-    return (base + timedelta(hours=h, minutes=m, seconds=s)).time()
-
-# F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4\screenshot\2025-12-05
-print(add_time("10:37:41", "00:05:57"))
-print(add_time("11:10:06", "00:08:02"))
-print(add_time("11:45:18", "00:08:00"))
-
-    # 10:43:38
-    # 11:18:08
-    # 11:53:18
-
-# %%% subtract
-
-# current time differences : 
-        # notocord ( A )  -  Windows ( Aw )
-
-def time_diff(t1, t2):
-    t1_dt = datetime.strptime(t1, "%H:%M:%S")
-    t2_dt = datetime.strptime(t2, "%H:%M:%S")
-    return t1_dt - t2_dt
-
-# Given times
-# F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4\screenshot\2025-12-05
-A  = "10:43:38"
-Aw = "09:46:51"
-
-B  = "11:18:08"
-Bw = "10:21:25"
-
-C  = "11:53:18"
-Cw = "10:56:33"
-
-print(time_diff(A, Aw))
-print(time_diff(B, Bw))
-print(time_diff(C, Cw))
-
-    # 0:56:47
-    # 0:56:43
-    # 0:56:45
-
-# %%'
-
-
+df_final[:10]
+    # Out[30]: 
+    #             Bin_Start             Bin_End  Average_Heart_Rate_BPM
+    # 0 2025-12-05 09:41:24 2025-12-05 09:41:34                   342.0
+    # 1 2025-12-05 09:41:34 2025-12-05 09:41:44                   348.0
+    # 2 2025-12-05 09:41:44 2025-12-05 09:41:54                   306.0
+    # 3 2025-12-05 09:41:54 2025-12-05 09:42:04                   240.0
+    # 4 2025-12-05 09:42:04 2025-12-05 09:42:14                   192.0
+    # 5 2025-12-05 09:42:14 2025-12-05 09:42:24                   174.0
+    # 6 2025-12-05 09:42:24 2025-12-05 09:42:34                   156.0
+    # 7 2025-12-05 09:42:34 2025-12-05 09:42:44                   138.0
+    # 8 2025-12-05 09:42:44 2025-12-05 09:42:54                   150.0
+    # 9 2025-12-05 09:42:54 2025-12-05 09:43:04                   186.0
 
 
