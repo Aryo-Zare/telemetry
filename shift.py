@@ -1,8 +1,10 @@
 
+# calculates the time shifts.
+    # difference of times registered by Notocord relative to Windows.
 
 # %% shift
 
-# this tests the shift in time relative to Windows.
+# this tests the shift in time from notocord relative to Windows.
 
 from datetime import datetime, timedelta
 
@@ -68,6 +70,8 @@ print(time_diff(C, Cw))
     # 0:56:45
 
 # so notocord time is about 0:56:43 more than system time.
+# these shift were registered in the corresponding table :
+    # F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4  |  table_batch_4_.docx
 
 # %% batch-3
 
@@ -77,8 +81,8 @@ print(time_diff(C, Cw))
 # %%% notocord time
 
 print(add_time("09:13:09" , "00:32:56"))
-print(add_time("10:21:17" , "00:03:49"))
-print(add_time("10:21:17" , "00:06:19"))
+print(add_time("10:21:17" , "00:03:49"))     # file : 2509264
+print(add_time("10:21:17" , "00:06:19"))     # file : 2509264
 
 # 09:46:05
 # 10:25:06
@@ -96,15 +100,17 @@ C  = '10:27:36'
 Cw = '10:28:14'
 
 # windows time is higher : hence : aw - a.
-    # otherwise : -1 day, 23:59:15.
+    # otherwise the output will be : -1 day, 23:59:15.
 print(time_diff(Aw, A))
 print(time_diff(Bw, B))
 print(time_diff(Cw, C))
 
 # 0:00:45
-# 0:00:45
-# 0:00:38
+# 0:00:45         # file : 2509264
+# 0:00:38         # file : 2509264
 
+# these shift were registered in the corresponding table :
+    # F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_3  |  print_table_....docx
 
 # %%'
 
