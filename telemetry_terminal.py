@@ -1,5 +1,8 @@
 
-# this anayzes the terminal experiment ( during the sacrifice ).
+# first run : expoore_telemetry.py : to
+    # get info from the file.
+    # plot it.
+# this analyzes the terminal experiment ( during the sacrifice ).
 
 # %% program-1
 
@@ -20,18 +23,32 @@ from pathlib import Path
 
 # %%%' path
 
+# batch_4
 file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4\conversion\sacrifice\2512054__SN_920336131__.edf'
 file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4\conversion\sacrifice\2512055__SN_920536131__.edf'
 file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4\conversion\sacrifice\2512058__SN_921536130__.edf'
 
 
+# batch-3
+file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_3\conversion\sacrifice\2509262__SN_921336130__.edf'
+file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_3\conversion\sacrifice\2509264__SN_920336131__.edf'
+file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_3\conversion\sacrifice\2509265__SN_920536131__.edf'
+
+
 # save path
 # output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512055__SN_920536131')
-output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512058__SN_92153613')
+# output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512058__SN_921536130')
+# output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_3\terminal\2509262__SN_921336130')
+# output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_3\terminal\2509264__SN_920336131')
+output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_3\terminal\2509265__SN_920536131')
+
+
 
 # output_dir.mkdir(parents=True, exist_ok=True)  # create if it doesn't exist
 
-# note : aside from te above , you should also edit the : time_mismatch : varialbe in the below cell.
+# ths is the corrected ( Windows ) acquisition start-time.
+    # taken from : explore_telemetry.py
+start_time = pd.Timestamp("2025-09-26 10:58:53")
 
 # %%%'
 
@@ -43,24 +60,9 @@ output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notoco
     # you should close the file if previously have been opened :
         # f_5.close()
 f = pyedflib.EdfReader(file_path)
-raw_start_time = f.getStartdatetime() # The 'Notocord' time
 sfreq = f.getSampleFrequency(1)
 ecg_raw = f.readSignal(1)
 f.close()
-
-#===========================================================
-#---- shift
-# Apply Windows-Time Correction 
-
-# get time_mismatch from : shift.py | difference
-# example : file : 2512054__SN_920336131__.edf
-    # Since Edf-time - Windows-time = 56:47,
-    # Windows-time = Edf-time - 56:47
-time_mismatch = timedelta(minutes=56, seconds=43)
-start_time = raw_start_time - time_mismatch # This is now your Windows time Reference
-
-print(f"Original EDF Start: {raw_start_time}")
-print(f"Corrected Windows Start: {start_time}")
 
 #===========================================================
 #---- Dropout Map (Dataframe-3)
@@ -242,6 +244,7 @@ df_peaks[:10]
     # Master Peak Log: 1502 beats identified.
     # Dropout Map saved for Program 2 analysis.
 
+
 # %% program-2
 
 # bins the R-peaks in a custom time-period.
@@ -259,6 +262,8 @@ df_peaks = pd.read_csv( source_dir / "Master_Peak_Log.csv.gz", parse_dates=['tim
 df_dropouts = pd.read_csv( source_dir / "Dropout_Map.csv", parse_dates=['start', 'end'])
 
 #---- save path
+# this is the same as that of program_1.
+    # so you do not need to change it.
 output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512055__SN_920536131')
 # output_dir.mkdir(parents=True, exist_ok=True)  # create if it doesn't exist
 
@@ -266,9 +271,9 @@ output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notoco
 #---- custom start_time
 # Define your custom start time (e.g., 14:00:00 on the day of recording)
     # = start of gassing.
-    # get it from your own table ( matches Windows-start-time ( unlike what theexperimenter may have recorded )) : 
+    # get it from your own table ( matches Windows-start-time ( unlike what the experimenter may have recorded )) : 
 # If you want to use the original start time, just set this to None.
-custom_start_time = pd.Timestamp("2025-12-05 10:14:24") 
+custom_start_time = pd.Timestamp("2025-09-26 11:00:30") 
 
 
 # %%%'
@@ -361,18 +366,40 @@ import numpy as np
 
 # %%% varibles
 
-output_dir_plot = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\batch_4\terminal\2512055__SN_920536131')
+# for this, you only need to load :df_final : from program-2.
+    # no need to load df_dropout.
 
-file_name = '2512055__SN_920536131'
+#=====================================================================
+
+# output_dir_plot = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\batch_4\terminal\2512055__SN_920536131')
+# output_dir_plot = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\batch_4\terminal\2512058__SN_921536130')
+# output_dir_plot = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\batch_4\terminal\2512058__SN_921536130')
+
+# output_dir_plot = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\batch_3\terminal\2509262__SN_921336130')
+# output_dir_plot = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\batch_3\terminal\2509264__SN_920336131')
+output_dir_plot = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\batch_3\terminal\2509265__SN_920536131')
+
+
+
+file_name = 'batch-3 , 2509265__SN_920536131'
+
 
 bin_duration_sec = 10  # As specified for this run
 
+#======================================================================
+
 # Define clinical events in "Minutes:Seconds" converted to decimal minutes
     # Loss of Consciousness & apnea : these are extracted from the excel file provided by Thomas.
+        # F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry  \  PO87_Auswertung_Thomas__.xlsx
         # Zeit Start zu Bewusstlosigkeit Stoppuhr
             # this is independent of mismatch between Windows-time & experimenter's time !
     # Ventricular Flutter :
         # telemetry.py | function : plot_ecg_segment_2 ( from the start of gassing )  =>   get the start-time.
+
+
+#=======================================================
+
+# batch-4
 
 # 2512054__SN_920336131
     # events = {
@@ -386,6 +413,36 @@ events = {
     (3 + 10/60): "Loss of Consciousness",
     (4 + 50/60): "Apnea",
     ( 405 / 60): "Ventricular Flutter"   # visually defined on the ECG signal.
+}
+
+# 2512058__SN_921536130
+events = {
+    (2 + 57/60): "Loss of Consciousness",
+    (4 + 0/60): "Apnea",
+    # ( 405 / 60): "First Ventricular Flutter"   # visually defined on the ECG signal.
+}
+
+#=======================================================
+
+# batch-3
+
+events = {
+    # (2 + 57/60): "Loss of Consciousness",
+    (4 + 50/60): "Apnea",
+    # ( 405 / 60): "First Ventricular Flutter"   # visually defined on the ECG signal.
+}
+
+events = {
+    (2 + 15/60): "Loss of Consciousness",
+    (4 + 23/60): "Apnea",
+    # ( 405 / 60): "First Ventricular Flutter"   # visually defined on the ECG signal.
+}
+
+events = {
+    (2 + 17/60): "Loss of Consciousness",
+    (3 + 50/60): "Apnea",
+    # ( 405 / 60): "First Ventricular Flutter"   # visually defined on the ECG signal.
+    # (6 + 35/60): 'confirmation of death'
 }
 
 # %%% overview
@@ -466,11 +523,15 @@ plt.show()
 
 
 # save path
-output_dir_plot = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\batch_4\terminal\2512054__SN_920336131')
-output_dir_plot = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\batch_4\terminal\2512055__SN_920536131')
+# output_dir_plot = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\batch_4\terminal\2512054__SN_920336131')
+# output_dir_plot = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\batch_4\terminal\2512055__SN_920536131')
+# output_dir_plot = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\batch_4\terminal\2512058__SN_921536130')
+
+
+
 # output_dir.mkdir(parents=True, exist_ok=True)  # create if it doesn't exist
 
-plt.savefig( output_dir_plot / 'HR_.pdf' )
+plt.savefig( output_dir_plot / f'HR_profile_{file_name}_.pdf' )
 
 
 # plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\batch_4\HR_3.pdf' )

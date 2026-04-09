@@ -1,6 +1,8 @@
 
 # calculates the time shifts.
     # difference of times registered by Notocord relative to Windows.
+# this does not give you the actual ( real , corrected ) acquisition start-time.
+    # for that you must extract the uncorrected ( software ) start-time from edf files.
 
 # %% shift
 
@@ -11,7 +13,7 @@ from datetime import datetime, timedelta
 # %%% add
 
 # notocord : bottom of the window.
-    # start_time + elapsed_time
+    # software start_time + elapsed_time
     # this returns the current-time that notocord shows ( different from system time ).
 
 def add_time(t1, t2):
@@ -23,13 +25,16 @@ def add_time(t1, t2):
 # %%% subtract
 
 # current time differences : 
-        # notocord ( A )  -  Windows ( Aw )
+        # notocord ( A )  -  Windows ( Aw )   ,  or  
+        # Windows ( Aw ) - notocord ( A ) 
 
 def time_diff(t1, t2):
     t1_dt = datetime.strptime(t1, "%H:%M:%S")
     t2_dt = datetime.strptime(t2, "%H:%M:%S")
     return t1_dt - t2_dt
 
+# here, when inputting times later at the time of execution of the function, you find-out if Windows-time or the software-time is higher !
+    # then you should subtract the higher-time from the lower time !
 
 # %% batch-4
 
@@ -50,6 +55,7 @@ print(add_time("11:45:18", "00:08:00"))
     # 11:53:18
 
 # %%% difference
+
 
 
 A  = "10:43:38"

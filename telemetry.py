@@ -28,6 +28,9 @@ file_path_3= r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_ts
 
 file_path_4= r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4\conversion\STE20a1__SN_920336131__ECG_1__2511221 - 1.edf'
 
+file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4\conversion\sacrifice\2512058__SN_921536130__.edf'
+
+
 # %%%  terminal experiment.
 
 # recordings during the terminal experiment ( sacrifice ).
@@ -70,6 +73,34 @@ f_4.getStartdatetime()
 
 f_5 = pyedflib.EdfReader( file_path_bach_4_sacrifice_cage_2 )
 
+# %%
+
+raw_digital_signal = f.read_digital_signal(1)
+
+f.getFiletype()
+
+# %%
+
+# Check labels and data for all channels
+labels = f.getSignalLabels()
+for i in range(f.signals_in_file):
+    sig = f.readSignal(i)
+    digital_sig = f.read_digital_signal(i)
+    
+    print(f"Index {i}: Label='{labels[i]}' | FS={f.getSampleFrequency(i)}Hz")
+    print(f"   - Physical Sum: {sig.sum()}")
+    print(f"   - Digital Sum:  {digital_sig.sum()}")
+    print("-" * 30)
+
+# %%%% fomrating _ time
+
+# explore 
+
+# If your function output was 10:48:33 on Dec 5th, 2025:
+start_time = pd.Timestamp("2025-12-05 10:48:33")
+
+start_time
+# Out[53]: Timestamp('2025-12-05 10:48:33')
 
 # %%%%'
 
@@ -116,7 +147,7 @@ f_5.getSignalLabels()
 
 # %%% sampling rate
 
-for i in range(10) :
+for i in range(4) :
     sfreq = f.getSampleFrequency(i)
     print(sfreq)
 
@@ -152,6 +183,7 @@ for i in range(3) :
 
 
 ecg_1 = f.readSignal(1)     # noise
+    # read -1, less than 247000 requested!!!
 ecg_2 = f.readSignal(2)
 
 ecg_3 = f_3.readSignal(0)
@@ -843,77 +875,6 @@ ecg_final = signal.sosfiltfilt(
 ecg_final.shape
     # Out[23]: (42542000,)
 
-# %%% plot
-
-# this plots from th estart of acquisition.
-
-def plot_ecg_segment(signal, sfreq=500, start_s=0, duration_s=10):
-    start_idx = int(start_s * sfreq)
-    end_idx = int((start_s + duration_s) * sfreq)
-
-    segment = signal[start_idx:end_idx]
-    time_s = np.arange(len(segment)) / sfreq + start_s
-
-    plt.figure( figsize=(12, 4) )
-    plt.plot(time_s, segment)
-    plt.xlabel("Time (s)")
-    plt.ylabel("Amplitude")
-    plt.title(f"ECG segment ({start_s}s – {start_s + duration_s}s)")
-    plt.tight_layout()
-
-# %%
-
-plot_ecg_segment(
-                    signal= ecg_final ,  # ecg_filtered ,  #ecg_final ,     # raw_trace, 
-                    sfreq=500, 
-                    start_s=360, 
-                    duration_s=120
-)
-
-# %%
-
-# this plots from th estart of gassing.
-
-def plot_ecg_segment_2(signal, 
-                     sfreq=500, 
-                     acq_gass_offset_s = 61 ,
-                     start_s=0,  # start time from the start of gassing.
-                     duration_s=10
-                     ):
-    
-    acq_gass_offset_sample = int(acq_gass_offset_s * sfreq)
-    
-    start_idx = int(start_s * sfreq) + acq_gass_offset_sample
-    end_idx =  start_idx + int(duration_s * sfreq)
-
-    segment = signal[start_idx:end_idx]
-    time_s = np.arange(len(segment)) / sfreq + start_s
-
-    plt.figure( figsize=(12, 4) )
-    plt.plot(time_s, segment)
-    plt.xlabel("Time (s)")
-    plt.ylabel("Amplitude")
-    plt.title(f"ECG segment ({start_s}s – {start_s + duration_s}s)  \n from start of gassing")
-    plt.tight_layout()
-
-
-# %%%%'
-
-
-plot_ecg_segment_2(
-                    signal= ecg_final ,  # ecg_filtered ,  #ecg_final ,     # raw_trace, 
-                    acq_gass_offset_s = 61 ,
-                    sfreq=500, 
-                    start_s=300, 
-                    duration_s=120
-)
-
-
-# %%%%'
-
-plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\batch_4\terminal\2512055__SN_920536131\flutter_2.pdf' )
-
-# %%%%'
 
 # this is from before writing the function.
 
