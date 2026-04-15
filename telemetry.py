@@ -1212,5 +1212,43 @@ df_peaks.to_csv("Master_Peak_Log.csv.gz", index=False, compression='gzip')
 
 print("Analysis Complete. 30s averages and Master Peak Log have been saved.")
 
+
+# %% conversion_test
+
+# the conversion error : testing the new converter.
+
+file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\nss-edf\error__conversion\conversion_test\error__2511201.edf'
+
+
+# out of : explore_telemetry.py
+    # F:\OneDrive - Uniklinik RWTH Aachen\home_cage\nss-edf\error__conversion\conversion_test\error__2511201.edf
+    # ==============================
+    # Uncorrected acquisition start-time (Software): 2025-11-20 21:05:12
+    # Time mismatch for records: 00:00:00
+    # Reference status: Windows Time is higher than the other.
+    # Corrected start-time (Windows Reference): 2025-11-20 21:05:12
+    # ==============================
+    # Number of channels: 15
+    # Sampling frequencies:
+    #     Channel 0: 1.0 Hz
+    #     Channel 1: 500.0 Hz
+    #     Channel 2: 1.0 Hz
+    #     Channel 3: 1.0 Hz
+    #     Channel 4: 500.0 Hz
+    #     Channel 5: 250.0 Hz
+    #     Channel 6: 1.0 Hz
+    #     Channel 7: 1.0 Hz
+    #     Channel 8: 500.0 Hz
+    #     Channel 9: 250.0 Hz
+    #     Channel 10: 1.0 Hz
+    #     Channel 11: 1.0 Hz
+    #     Channel 12: 500.0 Hz
+    #     Channel 13: 250.0 Hz
+    #     Channel 14: 1.0 Hz
+
+# plotted with he plotting function in the same .py file : saved in : 
+    # F:\OneDrive - Uniklinik RWTH Aachen\home_cage\nss-edf\error__conversion\conversion_test\resolved__2511201_.pdf
+
+
 # %%'
 

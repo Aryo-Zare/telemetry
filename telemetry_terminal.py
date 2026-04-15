@@ -355,6 +355,44 @@ df_final[:10]
     # Analysis complete. 
     # Bins anchored to 2025-12-05 10:14:24.
 
+# %% attributes
+
+# this should later be automated as part of Progrmas_1_2.
+
+source_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512058__SN_921536130')
+file_name='HR_Analysis_10s_from_1049.csv'
+df_HR_10s = pd.read_csv( source_dir / file_name )
+
+
+# Windows ( corrected ) Start Time from your exploration function/screenshots
+rec_start_windows = pd.Timestamp("2025-12-05 10:48:33") 
+# Windows Gassing Start Time
+gassing_start_windows = pd.Timestamp("2025-12-05 10:49:27") 
+
+
+df_HR_10s.attrs['rec_start_windows'] = rec_start_windows
+    # Out[50]: Timestamp('2025-12-05 10:48:33')
+
+df_HR_10s.attrs['gassing_start_windows'] = rec_start_windows
+
+df_HR_10s.attrs['bin_size'] = '10s'
+
+output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512058__SN_921536130')
+output_name = 'df_HR_10s.pkl'
+df_HR_10s.to_pickle( output_dir / output_name )
+
+
+# a dictionary.
+df_HR_10s.attrs
+    # Out[69]: 
+    # {'rec_start_windows': Timestamp('2025-12-05 10:48:33'),
+    #  'gassing_start_windows': Timestamp('2025-12-05 10:48:33'),
+    #  'bin_size': '10s'}
+
+# it shows the same as above.
+# import pprint
+# pprint.pprint( df_HR_10s.attrs )
+
 # %% plot__HR
 
 # plot for heart-rate.
@@ -364,7 +402,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-# %%% varibles
+# %%% variables
 
 # for this, you only need to load :df_final : from program-2.
     # no need to load df_dropout.
@@ -384,6 +422,11 @@ output_dir_plot = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_n
 file_name = 'batch-3 , 2509265__SN_920536131'
 
 
+# note : this is actually not a varialbe to be changed !!
+    # this should be the same bin-size in whih the dataframe was created !
+    # the dataframe ( df_final ) was created, calculating average heart-rate for every 10s.
+    # so the x-axis of the plot should account for this.
+    # to check the binning of the dataframe, you can print it & visually check the time-diff.
 bin_duration_sec = 10  # As specified for this run
 
 #======================================================================

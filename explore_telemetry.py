@@ -30,6 +30,8 @@ file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse
 file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_3\conversion\sacrifice\2509265__SN_920536131__.edf'
 
 
+
+
 # %% explore_file
 
 # prerequisite : shift.py : get this info :
@@ -82,7 +84,7 @@ def explore_file(file_path, h=0, m=0, s=0, windows_is_ahead=True):
 
 # %%% execute
 
-explore_file(file_path, h=0, m=0, s=120, windows_is_ahead=True)
+explore_file(file_path, h=0, m=0, s=0, windows_is_ahead=True)
 
 # outputs were saved in the correponding tables :  
     # F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4  \  table_batch_4  .docx
@@ -206,7 +208,7 @@ plot_ecg_segment_2(
 
 # plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\batch_3\terminal\2509262__SN_921336130\fibrilation_.pdf' )
 # plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\batch_3\terminal\2509264__SN_920336131\ecg_9_.pdf' )
-plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\batch_3\terminal\2509265__SN_920536131\ecg_7_.pdf' )
+plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\nss-edf\error__conversion\conversion_test\resolved__2511201_.pdf' )
 
 
 # %%%'
