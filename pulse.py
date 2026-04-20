@@ -108,7 +108,7 @@ gassing_start_windows = pd.Timestamp("2025-12-05 10:49:27")
 bin_size_str = '1s'
 
 output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512058__SN_921536130')
-output_name = "Pulse_Mean_Pressure_1s_Bins.csv"
+output_name = "Pulse_Mean_Pressure_1s_Bins.pkl"
 
 # %%% process
 
@@ -136,7 +136,7 @@ pulse_cleaned = np.where(~forbidden_mask, pulse_raw, np.nan)
 times = [rec_start_windows + timedelta(seconds=i/sfreq) for i in range(len(pulse_cleaned))]
 df_pulse = pd.DataFrame({'pressure': pulse_cleaned}, index=times)
 
-# Tight binning (2 seconds) for a continuous-looking profile
+# Tight binning (1-second) for a continuous-looking profile
 # Resample automatically ignores NaN values in its mean calculation
 df_binned = df_pulse.resample(bin_size_str).mean()
 
@@ -146,7 +146,7 @@ df_binned = df_pulse.resample(bin_size_str).mean()
 df_binned['Minutes_from_Gassing'] = (df_binned.index - gassing_start_windows).total_seconds() / 60.0
 
 # --- 6. Export ---
-df_binned.to_csv( output_dir / output_name )
+df_binned.to_pickle( output_dir / output_name )
 
 print(f"Analysis complete. Mean pressure saved to {output_name}")
 
@@ -181,9 +181,35 @@ df_binned['pressure'].plot()
 
 plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\pulse\2512058_pulse\average_2s_.pdf' )
 
+# %%% problem--csv
 
-# %% rebinning
+# problem arising from saving it to csv :
+    # Timestamp column gets from index to a new column.
+    # it gets an artifical name ( 'Unnamed: 0' ).
+    # it is turned to a string : it looks like the timestamp, but is not a Datetime object !
+df_pulse_binned_1s = pd.read_csv( output_dir / output_name )
+df_pulse_binned_1s.set_index('Unnamed: 0', inplace=True)
+df_pulse_binned_1s.index.name = None
+df_pulse_binned_1s.index = pd.to_datetime(df_pulse_binned_1s.index)
 
+#==============================================
+
+# Save the gassing time inside the dataframe object.
+df_pulse_binned_1s.attrs['rec_start_windows'] = rec_start_windows
+df_pulse_binned_1s.attrs['gassing_start_windows'] = gassing_start_windows
+
+#==============================================
+
+output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512058__SN_921536130')
+output_name = "df_pulse_binned_1s.pkl"
+df_pulse_binned_1s.to_pickle( output_dir / output_name )
+
+
+# %% rebin
+# %%%  test
+
+# note : a function is writen for this in the next cell .
+# here, it is for testing.
 # if later decided to lower the temporal resolution of the pulse amplitude averages.
 
 output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512058__SN_921536130')
@@ -234,10 +260,7 @@ df_5s[:5]
 df_5s.to_csv( output_dir / output_name )
 
 
-# %%'
-
-
-# %% rebin
+# %%%' 
 
 def rebin_pulse_data(df_input, bpps=5, bin_size='5s', gassing_time=None):
     """
@@ -251,6 +274,7 @@ def rebin_pulse_data(df_input, bpps=5, bin_size='5s', gassing_time=None):
         example : 5 : average pressure for the first 5s of the recrding to be set as baseline pressure.
     bin_size: String for pandas resample (e.g., '5s', '10s', '1min')
     gassing_time: pd.Timestamp for relative time calculation
+        Windows start-time of gassing.
     """
     # 1. Resample and average
     df_rebinned = df_input[['pressure']].resample(bin_size).mean()
@@ -259,11 +283,14 @@ def rebin_pulse_data(df_input, bpps=5, bin_size='5s', gassing_time=None):
     # We re-calculate this so 100% is based on the new, larger bin
     
     # calculate the baseline pressure.
+    # baseline is calculated based on the 1s binned data.
     baseline = df_input['pressure'][:bpps].mean()
+    # new pressure column / baseline-pressure.
     df_rebinned['pressure_pct_of_baseline'] = (df_rebinned['pressure'] / baseline) * 100
     
     # 3. Update Relative Time
     if gassing_time is not None:
+        # new ( rebinned ) index ( time-stamp )  -  gassing_start.
         diff = df_rebinned.index - gassing_time
         df_rebinned['Minutes_from_Gassing'] = diff.total_seconds() / 60.0
         
@@ -272,31 +299,8 @@ def rebin_pulse_data(df_input, bpps=5, bin_size='5s', gassing_time=None):
 # --- Usage Example ---
 # df_5s = rebin_pulse_data(df_binned, bin_size='5s', gassing_time=gassing_start_windows)
 
-# %%
 
-# problem arising from saving it to csv :
-    # Timestamp column gets from index to a new column.
-    # it gets an artifical name ( 'Unnamed: 0' ).
-    # it is turned to a string : it looks like the timsstamp, but is not a Datetime object !
-
-df_pulse_binned_1s = pd.read_csv( output_dir / output_name )
-df_pulse_binned_1s.set_index('Unnamed: 0', inplace=True)
-df_pulse_binned_1s.index.name = None
-df_pulse_binned_1s.index = pd.to_datetime(df_pulse_binned_1s.index)
-
-#==============================================
-
-# Save the gassing time inside the dataframe object
-df_pulse_binned_1s.attrs['rec_start_windows'] = rec_start_windows
-df_pulse_binned_1s.attrs['gassing_start_windows'] = gassing_start_windows
-
-#==============================================
-
-output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512058__SN_921536130')
-output_name = "df_pulse_binned_1s.pkl"
-df_pulse_binned_1s.to_pickle( output_dir / output_name )
-
-# %%
+# %%% execute
 
 df_5s = rebin_pulse_data(df_pulse_binned_1s, 
                          bpps=5,

@@ -307,6 +307,7 @@ for bin_start, peak_data in bin_groups:
     bin_end = bin_start + timedelta(seconds=bin_duration_sec)
     
     # Temporal intersection check: Does this bin hit any dropout zone? 
+    # this probably checks (loops) for every row in df_dropout !
     overlaps = df_dropouts[(bin_start < df_dropouts['end_time']) & (bin_end > df_dropouts['start_time'])]
     
     if not overlaps.empty:
