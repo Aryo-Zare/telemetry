@@ -103,7 +103,7 @@ for s, e in zip(starts, ends):
 
 # Save the map with both precision formats 
 df_dropouts = pd.DataFrame(dropout_zones)
-df_dropouts.to_csv( output_dir / "Dropout_Map.csv", index=False)
+df_dropouts.to_pickle( output_dir / "Dropout_Map.pkl")
 
 #===========================================================
 #---- Pre-processing & Filtering (Whole Signal)
@@ -194,8 +194,8 @@ for b_idx in range(total_bins):
 df_peaks = pd.DataFrame(master_peak_log)
 # Ensure sample_stamp is saved as an integer to prevent scientific notation.
 df_peaks['sample_stamp'] = df_peaks['sample_stamp'].astype(int)
-df_peaks.to_csv( output_dir / "Master_Peak_Log.csv.gz", index=False, compression='gzip')
-# Dropout_Map.csv : saved higer in th program.
+df_peaks.to_pickle( output_dir / "Master_Peak_Log.pkl.gz")
+# Dropout_Map.pkl : saved higer in th program.
 
 print("Program 1 Complete.")
 print(f"Master Peak Log: {len(df_peaks)} beats identified.")
@@ -258,8 +258,8 @@ from datetime import timedelta
 
 #---- Load the Data Created by Program 1
 source_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe')
-df_peaks = pd.read_csv( source_dir / "Master_Peak_Log.csv.gz", parse_dates=['timestamp'])
-df_dropouts = pd.read_csv( source_dir / "Dropout_Map.csv", parse_dates=['start', 'end'])
+df_peaks = pd.read_pickle( source_dir / "Master_Peak_Log.pkl.gz")
+df_dropouts = pd.read_pickle( source_dir / "Dropout_Map.pkl")
 
 #---- save path
 # this is the same as that of program_1.
@@ -325,8 +325,8 @@ for bin_start, peak_data in bin_groups:
 
 #---- Export Results
 df_final = pd.DataFrame(results)
-output_filename = f"HR_Analysis_{bin_size_str}_from_{custom_start_time.strftime('%H%M') if custom_start_time else 'start'}.csv"
-df_final.to_csv( output_dir / output_filename, index=False)
+output_filename = f"HR_Analysis_{bin_size_str}_from_{custom_start_time.strftime('%H%M') if custom_start_time else 'start'}.pkl"
+df_final.to_pickle( output_dir / output_filename )
 
 print(f"Analysis complete. \nBins anchored to {custom_start_time if custom_start_time else 'recording start'}.")
 
@@ -361,8 +361,8 @@ df_final[:10]
 # this should later be automated as part of Progrmas_1_2.
 
 source_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512058__SN_921536130')
-file_name='HR_Analysis_10s_from_1049.csv'
-df_HR_10s = pd.read_csv( source_dir / file_name )
+file_name='HR_Analysis_10s_from_1049.pkl'
+df_HR_10s = pd.read_pickle( source_dir / file_name )
 
 
 # Windows ( corrected ) Start Time from your exploration function/screenshots

@@ -181,29 +181,6 @@ df_binned['pressure'].plot()
 
 plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\pulse\2512058_pulse\average_2s_.pdf' )
 
-# %%% problem--csv
-
-# problem arising from saving it to csv :
-    # Timestamp column gets from index to a new column.
-    # it gets an artifical name ( 'Unnamed: 0' ).
-    # it is turned to a string : it looks like the timestamp, but is not a Datetime object !
-df_pulse_binned_1s = pd.read_csv( output_dir / output_name )
-df_pulse_binned_1s.set_index('Unnamed: 0', inplace=True)
-df_pulse_binned_1s.index.name = None
-df_pulse_binned_1s.index = pd.to_datetime(df_pulse_binned_1s.index)
-
-#==============================================
-
-# Save the gassing time inside the dataframe object.
-df_pulse_binned_1s.attrs['rec_start_windows'] = rec_start_windows
-df_pulse_binned_1s.attrs['gassing_start_windows'] = gassing_start_windows
-
-#==============================================
-
-output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512058__SN_921536130')
-output_name = "df_pulse_binned_1s.pkl"
-df_pulse_binned_1s.to_pickle( output_dir / output_name )
-
 
 # %% rebin
 # %%%  test
@@ -213,7 +190,7 @@ df_pulse_binned_1s.to_pickle( output_dir / output_name )
 # if later decided to lower the temporal resolution of the pulse amplitude averages.
 
 output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512058__SN_921536130')
-output_name = "Pulse_Mean_Pressure_5s_Bins.csv"
+output_name = "Pulse_Mean_Pressure_5s_Bins.pkl"
 
 
 # --- Re-bin to 5 Seconds ---
@@ -257,7 +234,7 @@ df_5s[:5]
     # 2025-12-05 10:48:45  136.755675                 99.002821             -0.700000
     # 2025-12-05 10:48:50  139.746592                101.168064             -0.616667
 
-df_5s.to_csv( output_dir / output_name )
+df_5s.to_pickle( output_dir / output_name )
 
 
 # %%%' 
@@ -331,6 +308,9 @@ df_pulse_binned_5s.to_pickle( output_dir / output_name  )
 
 df_pulse_binned_5s.attrs['rec_start_windows']
     # Out[50]: Timestamp('2025-12-05 10:48:33')
+    
+type(df_pulse_binned_5s.attrs['rec_start_windows'])
+    # Out[19]: pandas.Timestamp
 
 df_pulse_binned_5s.attrs['gassing_start_windows']
     # Out[51]: Timestamp('2025-12-05 10:49:27')

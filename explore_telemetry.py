@@ -211,4 +211,37 @@ plot_ecg_segment_2(
 plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\nss-edf\error__conversion\conversion_test\resolved__2511201_.pdf' )
 
 
-# %%%'
+# %% convert : csv => pickle
+
+# beginning of program_2.
+df_peaks = pd.read_csv( source_dir / "Master_Peak_Log.csv.gz", parse_dates=['timestamp'])
+df_dropouts = pd.read_csv( source_dir / "Dropout_Map.csv", parse_dates=['start', 'end'])
+
+# %%% problem--csv
+
+# problem arising from saving it to csv :
+    # Timestamp column gets from index to a new column.
+    # it gets an artifical name ( 'Unnamed: 0' ).
+    # it is turned to a string : it looks like the timestamp, but is not a Datetime object !
+df_pulse_binned_1s = pd.read_csv( output_dir / output_name )
+df_pulse_binned_1s.set_index('Unnamed: 0', inplace=True)
+df_pulse_binned_1s.index.name = None
+df_pulse_binned_1s.index = pd.to_datetime(df_pulse_binned_1s.index)
+
+#==============================================
+
+# Save the gassing time inside the dataframe object.
+df_pulse_binned_1s.attrs['rec_start_windows'] = rec_start_windows
+df_pulse_binned_1s.attrs['gassing_start_windows'] = gassing_start_windows
+
+#==============================================
+
+output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512058__SN_921536130')
+output_name = "df_pulse_binned_1s.pkl"
+df_pulse_binned_1s.to_pickle( output_dir / output_name )
+
+# %%% attributes
+
+
+# %%'
+
