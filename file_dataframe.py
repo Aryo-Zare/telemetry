@@ -21,6 +21,43 @@ df_HR_10s.attrs = dict_attrs
 file_name='HR_Analysis_10s_from_1049.pkl'
 df_HR_10s.to_pickle( source_dir / file_name  )
 
+# %%
+
+source_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_3\terminal\2509265__SN_920536131')
+file_name='HR_Analysis_10s_from_1100.csv'
+df_HR_10s = pd.read_csv(source_dir / file_name , parse_dates=['Bin_Start', 'Bin_End'])
+
+
+dict_attrs = {'path':'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_3\terminal\2509265__SN_920536131',
+              'rec_start_windows': pd.Timestamp('2025-09-26 10:58:53'),
+              'gassing_start_windows': pd.Timestamp('2025-09-26 11:00:30')}
+
+df_HR_10s.attrs = dict_attrs
+
+file_name='HR_Analysis_10s_from_1100.pkl'
+df_HR_10s.to_pickle( source_dir / file_name  )
+
+
+# %%
+
+# batch_3 , 1st
+
+source_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_3\terminal\2509262__SN_921336130')
+file_name='HR_Analysis_10s_from_0945.csv'
+df_HR_10s = pd.read_csv(source_dir / file_name , parse_dates=['Bin_Start', 'Bin_End'])
+
+
+dict_attrs = {'path':str(source_dir),
+              'rec_start_windows': pd.Timestamp('2025-09-26 09:13:54'),
+              'gassing_start_windows': pd.Timestamp('2025-09-26 09:45:00')}
+
+df_HR_10s.attrs = dict_attrs
+
+file_name='HR_Analysis_10s_from_0945.pkl'
+df_HR_10s.to_pickle( source_dir / file_name  )
+
+
+
 # %%% check the time format
 
 df_HR_10s[:4]

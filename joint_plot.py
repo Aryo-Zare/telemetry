@@ -2,14 +2,64 @@
 
 # %%
 
+# batch_4 , 3rd
+
 source_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512058__SN_921536130')
-file_name='df_HR_10s.pkl'
-df_HR_10s = pd.read_csv( source_dir / file_name )
 
 
-output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512058__SN_921536130')
-output_name = "df_pulse_binned_5s.pkl"
-df_pulse_binned_5s
+# seemingly this file only has attributes added to :  HR_Analysis_10s_from_1049.pkl
+file_name ='df_HR_10s.pkl'
+df_HR_10s = pd.read_pickle( source_dir / file_name )
+
+file_name = "df_pulse_binned_5s.pkl"
+df_pulse_binned_5s = pd.read_pickle( source_dir / file_name )
+
+
+title_text = 'batch_4 , 2512058__SN_921536130'
+
+# F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry  \  PO87_Auswertung_Thomas__.xlsx
+events = {
+    (2 + 57/60): "Loss of Consciousness",
+    (4 + 0/60): "Apnea"
+}
+
+
+# %%
+
+# batch_3 , 3rd
+
+source_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_3\terminal\2509265__SN_920536131')
+df_HR_10s = pd.read_pickle( source_dir / 'HR_Analysis_10s_from_1100.pkl' )
+df_pulse_binned_5s = pd.read_pickle( source_dir / "df_pulse_binned_5s.pkl" )
+
+title_text = 'batch_3 , 2509265__SN_920536131'
+
+
+# F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry  \  PO87_Auswertung_Thomas__.xlsx
+events = {
+    (2 + 17/60): "Loss of Consciousness",
+    (3 + 50/60): "Apnea"
+}
+
+# %%
+
+# batch_3 , 1st
+
+source_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_3\terminal\2509262__SN_921336130')
+df_HR_10s = pd.read_pickle( source_dir / 'HR_Analysis_10s_from_0945.pkl' )
+df_pulse_binned_5s = pd.read_pickle( source_dir / "df_pulse_binned_5s.pkl" )
+
+title_text = 'batch_3 , 2509262__SN_921336130'
+
+
+# F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry  \  PO87_Auswertung_Thomas__.xlsx
+events = {
+    # (2 + 17/60): "Loss of Consciousness",
+    (4 + 50/60): "Apnea"
+}
+
+
+# FileNotFoundError:  initially files were saved in csv !    =>  file_dataframe.py
 
 # %%
 
@@ -22,7 +72,6 @@ import numpy as np
 df_HR_10s
 df_pulse_binned_5s
 
-title_text = 'batch_4 , 2512058__SN_921536130'
 
 # %%
 
@@ -67,11 +116,6 @@ for i in range(len(nan_mask) - 1):
                     color='grey', alpha=0.2, label='Signal Dropout' if i == 0 else "")
 
 # --- 6. Add Clinical Annotations (from plot.txt) ---
-events = {
-    (2 + 57/60): "Loss of Consciousness",
-    (4 + 0/60): "Apnea"
-}
-
 for x_min, label in events.items():
     ax1.axvline(x=x_min, color='darkred', linestyle='--', alpha=0.8) # [cite: 205]
     ax1.text(x_min, 400, f"  {label}", # [cite: 206, 207]
@@ -99,8 +143,21 @@ plt.show()
 
 # %%
 
+plt.xlim( right=7.4 )
+
+# %%
+
+
 output_dir_plot = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\batch_4\terminal\2512058__SN_921536130')
 file_name = 'joint_2512058.pdf'
+
+
+output_dir_plot = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\batch_3\terminal\2509265__SN_920536131')
+file_name = 'joint_2509265.pdf'
+
+output_dir_plot = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\batch_3\terminal\2509262__SN_921336130')
+file_name = 'joint_2509262_2.pdf'
+
 plt.savefig( output_dir_plot / file_name )
 
 

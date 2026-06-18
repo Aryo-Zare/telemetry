@@ -8,9 +8,20 @@ import os
 import random
 import matplotlib.pyplot as plt
 
-# %%%'
+# %%% file
 
-file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4\conversion\sacrifice\2512058__SN_921536130__.edf'
+# batch-4  3rd
+# file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4\conversion\sacrifice\2512058__SN_921536130__.edf'
+
+# batch-4  2nd
+file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4\conversion\sacrifice\2512055__SN_920536131__.edf'
+
+
+# batch-3  , 3rd
+file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_3\conversion\sacrifice\2509265__SN_920536131__.edf'
+
+
+# %%% read
 
 f = pyedflib.EdfReader(file_path)
 # blood-pressure cannel
@@ -57,13 +68,13 @@ plot_pulse_segment(
                     signal= raw_trace ,  # ecg_filtered ,  #ecg_final ,     # raw_trace, 
                     acq_gass_offset_s = 0 ,
                     sfreq=250, 
-                    start_s=480, 
-                    duration_s=120
+                    start_s=60, 
+                    duration_s=60
 )
 
 # %%%'
 
-plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\pulse\2512058_pulse\pulse_2512058_end_2_.pdf' )
+plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\pulse\batch_3\2509265\explore\3.pdf' )
 
 # %% merrge pdf
 
@@ -94,27 +105,73 @@ from pathlib import Path
 
 # %%% variables
 
-
+#====================================================
+# batch_4  , 3rd
 # --- 1. Manual User Inputs ---
 file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4\conversion\sacrifice\2512058__SN_921536130__.edf'
+output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512058__SN_921536130')
+
 
 # Windows ( corrected ) Start Time from your exploration function/screenshots
 rec_start_windows = pd.Timestamp("2025-12-05 10:48:33") 
 # Windows Gassing Start Time
 gassing_start_windows = pd.Timestamp("2025-12-05 10:49:27") 
 
+#====================================================
+# batch_4  , 2nd 
+# --- 1. Manual User Inputs ---
+file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4\conversion\sacrifice\2512055__SN_920536131__.edf'
+output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512055__SN_920536131')
+
+
+# Windows ( corrected ) Start Time from your exploration function/screenshots
+rec_start_windows = pd.Timestamp("2025-12-05 10:13:23") 
+# Windows Gassing Start Time
+gassing_start_windows = pd.Timestamp("2025-12-05 10:14:24") 
+
+#====================================================
+# batch_3  , 3rd
+# --- 1. Manual User Inputs ---
+file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_3\conversion\sacrifice\2509265__SN_920536131__.edf'
+output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_3\terminal\2509265__SN_920536131')
+
+
+# Windows ( corrected ) Start Time from your exploration function/screenshots
+rec_start_windows = pd.Timestamp("2025-09-26 10:58:53") 
+# Windows Gassing Start Time
+gassing_start_windows = pd.Timestamp("2025-09-26 11:00:30") 
+
+#====================================================
+# batch_3  , 1st
+# --- 1. Manual User Inputs ---
+file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_3\conversion\sacrifice\2509262__SN_921336130__.edf'
+output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_3\terminal\2509262__SN_921336130')
+
+
+# Windows ( corrected ) Start Time from your exploration function/screenshots
+rec_start_windows = pd.Timestamp("2025-09-26 09:13:54") 
+# Windows Gassing Start Time
+gassing_start_windows = pd.Timestamp("2025-09-26 9:45:00") 
+
+
+#====================================================
+
+output_name = "df_pulse_binned_1s.pkl"
+# Pulse_Mean_Pressure_1s_Bins : this was probably later renamed in windows as : df_pulse_binned_1s .
+
 # this will be the original dataframe
     # you can later resample for larger bins.
 bin_size_str = '1s'
 
-output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512058__SN_921536130')
-output_name = "Pulse_Mean_Pressure_1s_Bins.pkl"
+# choosing the appropriate cannel  =>  below.
 
 # %%% process
 
+# function of it is created in the below cell.
+
 # --- 2. Load Signal ---
 f = pyedflib.EdfReader(file_path)
-sfreq = f.getSampleFrequency(2) # Pulse is Channel 2
+sfreq = f.getSampleFrequency(2) # Pulse is Channel 2.    # check the appropriate channel accoding to below.
 pulse_raw = f.readSignal(2)
 f.close()
 
@@ -150,6 +207,85 @@ df_binned.to_pickle( output_dir / output_name )
 
 print(f"Analysis complete. Mean pressure saved to {output_name}")
 
+
+# %%%' 
+
+
+def process_pulse_mean_pressure(file_path, 
+                                rec_start_windows, 
+                                gassing_start_windows, 
+                                output_dir, 
+                                output_name, 
+                                bin_size_str='1S', 
+                                channel=2):
+    """
+    Reads a telemetry EDF file, cleans pulse dropouts, bins the data, 
+    and exports a Pickled dataframe with relative gassing times.
+    """
+    # 1. Path Management
+    file_path = Path(file_path)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True) # Ensure output folder exists
+    
+    print(f"Processing: {file_path.name}...")
+
+    # --- 2. Load Signal ---
+    f = pyedflib.EdfReader(str(file_path)) # pyedflib usually prefers string paths
+    sfreq = f.getSampleFrequency(channel) # Pulse is usually Channel 2
+    pulse_raw = f.readSignal(channel)
+    f.close()
+
+    # --- 3. Remove "Valleys" (Signal Drop-outs) ---
+    is_dropout = pulse_raw < 0
+    buffer_samples = int(0.1 * sfreq) # 100ms safety buffer
+    
+    # Dilate the mask to ensure we don't include artifacts on the edges of dropouts
+    forbidden_mask = ndimage.binary_dilation(is_dropout, structure=np.ones(buffer_samples * 2 + 1))
+
+    # Replace forbidden data with NaN so they are ignored in the average
+    pulse_cleaned = np.where(~forbidden_mask, pulse_raw, np.nan)
+
+    # --- 4. Time Alignment & Binning ---
+    # Convert samples to time-stamps using the Windows start time
+    times = [pd.to_datetime(rec_start_windows) + timedelta(seconds=i/sfreq) for i in range(len(pulse_cleaned))]
+    df_pulse = pd.DataFrame({'pressure': pulse_cleaned}, index=times)
+
+    # Tight binning for a continuous-looking profile
+    df_binned = df_pulse.resample(bin_size_str).mean()
+
+    # --- 5. Final Formatting (Gassing Start = 0) ---
+    gassing_start_ts = pd.to_datetime(gassing_start_windows)
+    df_binned['Minutes_from_Gassing'] = (df_binned.index - gassing_start_ts).total_seconds() / 60.0
+
+    # --- 6. Attach Metadata ---
+    df_binned.attrs['file_source'] = file_path.name
+    df_binned.attrs['rec_start_windows'] = rec_start_windows
+    df_binned.attrs['gassing_start_windows'] = gassing_start_windows
+
+    # --- 7. Export ---
+    out_file = output_dir / output_name
+    df_binned.to_pickle(out_file)
+
+    print(f"  -> Analysis complete. Saved to: {out_file.name}\n")
+    return df_binned
+
+# %%% execute
+
+# Process a single file
+df_binned = process_pulse_mean_pressure(
+                                        file_path = file_path,
+                                        rec_start_windows = rec_start_windows,
+                                        gassing_start_windows = gassing_start_windows,
+                                        output_dir = output_dir,
+                                        output_name = output_name,
+                                        bin_size_str = bin_size_str,
+                                        channel = 2 # check the appropriate channel accoding to below.
+)
+
+# choosing the appropriate channel :
+    # F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4  \  table_batch_4__.docx
+        #  <=    C:\code\telemetry\explore_telemetry.py  |  explore_file__.py
+
 # %%% out
 
 df_binned.shape
@@ -179,17 +315,20 @@ df_binned[:5]
 
 df_binned['pressure'].plot()
 
-plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\pulse\2512058_pulse\average_2s_.pdf' )
+plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\pulse\batch_3\2509265\average_1s_.pdf' )
+plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\pulse\batch_3\2509262\average_1s_.pdf' )
 
+# average_2s_.pdf
 
 # %% rebin
 # %%%  test
 
-# note : a function is writen for this in the next cell .
+# note : a function is written for this in the next cell .
 # here, it is for testing.
 # if later decided to lower the temporal resolution of the pulse amplitude averages.
 
-output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512058__SN_921536130')
+# output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512058__SN_921536130')
+
 output_name = "Pulse_Mean_Pressure_5s_Bins.pkl"
 
 
@@ -239,14 +378,14 @@ df_5s.to_pickle( output_dir / output_name )
 
 # %%%' 
 
-def rebin_pulse_data(df_input, bpps=5, bin_size='5s', gassing_time=None):
+def rebin_pulse_data(df_input, bpps=5, bin_size='5s', gassing_time=None , output_dir, output_name):
     """
     Downsamples a 1s pulse dataframe to a lower resolution.
     
     Parameters:
     df_input: The 1s master dataframe (with datetime index)
     bpps : baseline pressure period in seconds.
-        a prerequisite tocalculate the percentage pressure from basline.
+        a prerequisite to calculate the percentage pressure from basline.
         this defines the duration of the baseline.
         example : 5 : average pressure for the first 5s of the recrding to be set as baseline pressure.
     bin_size: String for pandas resample (e.g., '5s', '10s', '1min')
@@ -270,7 +409,15 @@ def rebin_pulse_data(df_input, bpps=5, bin_size='5s', gassing_time=None):
         # new ( rebinned ) index ( time-stamp )  -  gassing_start.
         diff = df_rebinned.index - gassing_time
         df_rebinned['Minutes_from_Gassing'] = diff.total_seconds() / 60.0
-        
+    
+    # --- 6. Attach Metadata ---
+    df_rebinned.attrs['file_source'] = file_path    # .name  : the '.name' attribute is only valid when it is of type 'path'.
+    df_rebinned.attrs['rec_start_windows'] = rec_start_windows
+    df_rebinned.attrs['gassing_start_windows'] = gassing_start_windows
+
+    out_file = output_dir / output_name
+    df_rebinned.to_pickle(out_file)
+    
     return df_rebinned
 
 # --- Usage Example ---
@@ -279,13 +426,17 @@ def rebin_pulse_data(df_input, bpps=5, bin_size='5s', gassing_time=None):
 
 # %%% execute
 
-df_5s = rebin_pulse_data(df_pulse_binned_1s, 
-                         bpps=5,
-                         bin_size='5s', 
-                         gassing_time=gassing_start_windows)
+df_pulse_binned_5s = rebin_pulse_data(
+                                    df_binned,    # df_pulse_binned_1s
+                                    bpps=5,
+                                    bin_size='5s', 
+                                    gassing_time=gassing_start_windows,
+                                    output_dir = output_dir,
+                                    output_name = "df_pulse_binned_5s.pkl"
+                                    )
+#====
 
-
-df_5s[:4]
+df_pulse_binned_5s[:4]
     # Out[31]: 
     #                        pressure  pressure_pct_of_baseline  Minutes_from_Gassing
     # 2025-12-05 10:48:30  138.133109                104.638295             -0.950000
@@ -293,18 +444,48 @@ df_5s[:4]
     # 2025-12-05 10:48:40  133.655785                101.246643             -0.783333
     # 2025-12-05 10:48:45  136.755675                103.594864             -0.700000
 
-df_pulse_binned_5s = df_5s.copy()
-
-# Save the gassing time inside the dataframe object
-df_pulse_binned_5s.attrs['rec_start_windows'] = rec_start_windows
-df_pulse_binned_5s.attrs['gassing_start_windows'] = gassing_start_windows
+df_pulse_binned_5s['pressure'].plot()
+plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\pulse\batch_3\2509262\average_5s_.pdf' )
 
 
-output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512058__SN_921536130')
-output_name = "df_pulse_binned_5s.pkl"
-df_pulse_binned_5s.to_pickle( output_dir / output_name  )
+# # Save the gassing time inside the dataframe object
+# df_pulse_binned_5s.attrs['rec_start_windows'] = rec_start_windows
+# df_pulse_binned_5s.attrs['gassing_start_windows'] = gassing_start_windows
+
+
+# output_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512058__SN_921536130')
+
+# run this, as earlier there was another output name given.
+# output_name = "df_pulse_binned_5s.pkl"
+# df_pulse_binned_5s.to_pickle( output_dir / output_name  )
+
+# %% NaN
+
+# batch_3 , 1st
+df_pulse_binned_5s.tail
+    # Out[149]: 
+    # <bound method NDFrame.tail of                       pressure  pressure_pct_of_baseline  Minutes_from_Gassing
+    # 2025-09-26 09:13:50        NaN                       NaN            -31.166667
+    # 2025-09-26 09:13:55  90.807912                 99.911620            -31.083333
+    # 2025-09-26 09:14:00  92.263710                101.513365            -31.000000
+    # 2025-09-26 09:14:05  89.905331                 98.918553            -30.916667
+    # 2025-09-26 09:14:10  98.588327                108.472040            -30.833333
+    #                        ...                       ...                   ...
+    # 2025-09-26 09:52:15        NaN                       NaN              7.250000
+    # 2025-09-26 09:52:20        NaN                       NaN              7.333333
+    # 2025-09-26 09:52:25        NaN                       NaN              7.416667
+    # 2025-09-26 09:52:30        NaN                       NaN              7.500000
+    # 2025-09-26 09:52:35        NaN                       NaN              7.583333
+    
+    # [466 rows x 3 columns]>
 
 # %% read attributes
+
+df_pulse_binned_5s.attrs
+    # Out[53]: 
+    # {'file_source': 'F:\\OneDrive - Uniklinik RWTH Aachen\\home_cage\\Stellar_notocord_tse\\save_notocord\\batch_4\\conversion\\sacrifice\\2512055__SN_920536131__.edf',
+    #  'rec_start_windows': Timestamp('2025-12-05 10:13:23'),
+    #  'gassing_start_windows': Timestamp('2025-12-05 10:14:24')}
 
 df_pulse_binned_5s.attrs['rec_start_windows']
     # Out[50]: Timestamp('2025-12-05 10:48:33')
