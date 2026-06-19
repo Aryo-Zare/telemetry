@@ -243,5 +243,57 @@ df_pulse_binned_1s.to_pickle( output_dir / output_name )
 # %%% attributes
 
 
+# %% msissing values.
+
+# batch_3 , 1st.
+
+# Number of missing values.
+df_pulse_binned_1s['pressure'].isna().sum()
+    # Out[61]: np.int64(212)
+
+
+df_pulse_binned_1s.attrs
+    # Out[64]: 
+    # {'file_source': '2509262__SN_921336130__.edf',
+    #  'rec_start_windows': Timestamp('2025-09-26 09:13:54'),
+    #  'gassing_start_windows': Timestamp('2025-09-26 09:45:00')}
+
+# %%%
+
+# Find consecutive missing-value ranges.
+
+mask = df_pulse_binned_1s['pressure'].isna()
+
+# Identify groups of consecutive True/False values
+groups = (mask != mask.shift()).cumsum()
+
+# Keep only groups where mask is True (missing values)
+missing_ranges = []
+
+for _, grp in df_pulse_binned_1s[mask].groupby(groups[mask]):
+    start_idx = grp.index[0]
+    end_idx   = grp.index[-1]
+    n_missing = len(grp)
+
+    missing_ranges.append((start_idx, end_idx, n_missing))
+
+missing_ranges
+    # Out[63]: 
+    # [(Timestamp('2025-09-26 09:13:54'), Timestamp('2025-09-26 09:13:54'), 1),
+    #  (Timestamp('2025-09-26 09:49:05'), Timestamp('2025-09-26 09:52:35'), 211)]
+
+# %%%
+
+df_missing_ranges = pd.DataFrame(
+    missing_ranges,
+    columns=['start_idx', 'end_idx', 'n_missing']
+)
+
+print(df_missing_ranges)
+    #             start_idx             end_idx  n_missing
+    # 0 2025-09-26 09:13:54 2025-09-26 09:13:54          1
+    # 1 2025-09-26 09:49:05 2025-09-26 09:52:35        211
+
 # %%'
+
 

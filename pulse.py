@@ -208,8 +208,7 @@ df_binned.to_pickle( output_dir / output_name )
 print(f"Analysis complete. Mean pressure saved to {output_name}")
 
 
-# %%%' 
-
+# %%% function
 
 def process_pulse_mean_pressure(file_path, 
                                 rec_start_windows, 
@@ -320,6 +319,62 @@ plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_ts
 
 # average_2s_.pdf
 
+# %%% calibration
+
+# =>  file_dataframe.py : to load the data.
+
+#================================
+#---- batch_3 , 1st
+
+df_pulse_binned_1s.head()
+    # Out[15]: 
+    #                      pressure  Minutes_from_Gassing
+    # 2025-09-26 09:13:54       NaN            -31.100000
+    # 2025-09-26 09:13:55 93.979854            -31.083333
+    # 2025-09-26 09:13:56 86.792964            -31.066667
+    # 2025-09-26 09:13:57 89.955967            -31.050000
+    # 2025-09-26 09:13:58 92.824171            -31.033333
+
+# 30 : calibration value :
+    # <=  F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_3  |  the table
+df_pulse_binned_1s['pressure_calibrated'] = df_pulse_binned_1s['pressure'] + 30 
+df_pulse_binned_1s.head()
+    # Out[17]: 
+    #                      pressure  Minutes_from_Gassing  pressure_calibrated
+    # 2025-09-26 09:13:54       NaN            -31.100000                  NaN
+    # 2025-09-26 09:13:55 93.979854            -31.083333           123.979854
+    # 2025-09-26 09:13:56 86.792964            -31.066667           116.792964
+    # 2025-09-26 09:13:57 89.955967            -31.050000           119.955967
+    # 2025-09-26 09:13:58 92.824171            -31.033333           122.824171
+
+source_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_3\terminal\2509262__SN_921336130')
+df_pulse_binned_1s.to_pickle( source_dir / 'df_pulse_binned_1s.pkl' )
+
+#================================
+#---- batch_3 , 3rd
+
+df_pulse_binned_1s.head()
+    # Out[22]: 
+    #                       pressure  Minutes_from_Gassing
+    # 2025-09-26 10:58:53        NaN             -1.616667
+    # 2025-09-26 10:58:54 172.233086             -1.600000
+    # 2025-09-26 10:58:55 164.223210             -1.583333
+    # 2025-09-26 10:58:56 165.755849             -1.566667
+    # 2025-09-26 10:58:57 163.896786             -1.550000
+
+df_pulse_binned_1s['pressure_calibrated'] = df_pulse_binned_1s['pressure'] - 33
+df_pulse_binned_1s.head()
+    # Out[24]: 
+    #                       pressure  Minutes_from_Gassing  pressure_calibrated
+    # 2025-09-26 10:58:53        NaN             -1.616667                  NaN
+    # 2025-09-26 10:58:54 172.233086             -1.600000           139.233086
+    # 2025-09-26 10:58:55 164.223210             -1.583333           131.223210
+    # 2025-09-26 10:58:56 165.755849             -1.566667           132.755849
+    # 2025-09-26 10:58:57 163.896786             -1.550000           130.896786
+
+source_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_3\terminal\2509265__SN_920536131')
+df_pulse_binned_1s.to_pickle( source_dir / 'df_pulse_binned_1s.pkl' )
+
 # %% rebin
 # %%%  test
 
@@ -376,9 +431,14 @@ df_5s[:5]
 df_5s.to_pickle( output_dir / output_name )
 
 
-# %%%' 
+# %%% function 
 
-def rebin_pulse_data(df_input, bpps=5, bin_size='5s', gassing_time=None , output_dir, output_name):
+def rebin_pulse_data(df_input, 
+                     bpps=5, 
+                     bin_size='5s', 
+                     gassing_time = None, 
+                     output_dir = None , 
+                     output_name = None ):
     """
     Downsamples a 1s pulse dataframe to a lower resolution.
     
@@ -393,16 +453,16 @@ def rebin_pulse_data(df_input, bpps=5, bin_size='5s', gassing_time=None , output
         Windows start-time of gassing.
     """
     # 1. Resample and average
-    df_rebinned = df_input[['pressure']].resample(bin_size).mean()
+    df_rebinned = df_input[['pressure_calibrated']].resample(bin_size).mean()
     
     # 2. Update Baseline Percentage
     # We re-calculate this so 100% is based on the new, larger bin
     
     # calculate the baseline pressure.
     # baseline is calculated based on the 1s binned data.
-    baseline = df_input['pressure'][:bpps].mean()
+    baseline = df_input['pressure_calibrated'][:bpps].mean()
     # new pressure column / baseline-pressure.
-    df_rebinned['pressure_pct_of_baseline'] = (df_rebinned['pressure'] / baseline) * 100
+    df_rebinned['pressure_pct_of_baseline'] = (df_rebinned['pressure_calibrated'] / baseline) * 100
     
     # 3. Update Relative Time
     if gassing_time is not None:
@@ -410,10 +470,7 @@ def rebin_pulse_data(df_input, bpps=5, bin_size='5s', gassing_time=None , output
         diff = df_rebinned.index - gassing_time
         df_rebinned['Minutes_from_Gassing'] = diff.total_seconds() / 60.0
     
-    # --- 6. Attach Metadata ---
-    df_rebinned.attrs['file_source'] = file_path    # .name  : the '.name' attribute is only valid when it is of type 'path'.
-    df_rebinned.attrs['rec_start_windows'] = rec_start_windows
-    df_rebinned.attrs['gassing_start_windows'] = gassing_start_windows
+    # adding the attributes is not needed as the file retains its attributes from the previous step !
 
     out_file = output_dir / output_name
     df_rebinned.to_pickle(out_file)
@@ -427,22 +484,75 @@ def rebin_pulse_data(df_input, bpps=5, bin_size='5s', gassing_time=None , output
 # %%% execute
 
 df_pulse_binned_5s = rebin_pulse_data(
-                                    df_binned,    # df_pulse_binned_1s
+                                    df_input = df_pulse_binned_1s ,    # df_pulse_binned_1s
                                     bpps=5,
                                     bin_size='5s', 
-                                    gassing_time=gassing_start_windows,
-                                    output_dir = output_dir,
+                                    gassing_time= df_pulse_binned_1s.attrs['gassing_start_windows'],
+                                    output_dir = source_dir,
                                     output_name = "df_pulse_binned_5s.pkl"
                                     )
 #====
 
+
 df_pulse_binned_5s[:4]
+    # batch_3 , 1st
+        # Out[44]: 
+        #                      pressure_calibrated  pressure_pct_of_baseline  Minutes_from_Gassing
+        # 2025-09-26 09:13:50                  NaN                       NaN            -31.166667
+        # 2025-09-26 09:13:55           120.807912                 99.933552            -31.083333
+        # 2025-09-26 09:14:00           122.263710                101.137803            -31.000000
+        # 2025-09-26 09:14:05           119.905331                 99.186928            -30.916667
+    
+    # batch_3 , 3rd  
+        # Out[40]: 
+        #                      pressure_calibrated  pressure_pct_of_baseline  Minutes_from_Gassing
+        # 2025-09-26 10:58:50           139.233086                104.273176             -1.666667
+        # 2025-09-26 10:58:55           129.816166                 97.220742             -1.583333
+        # 2025-09-26 10:59:00           133.110787                 99.688120             -1.500000
+        # 2025-09-26 10:59:05           136.541748                102.257604             -1.416667
+    
     # Out[31]: 
-    #                        pressure  pressure_pct_of_baseline  Minutes_from_Gassing
-    # 2025-12-05 10:48:30  138.133109                104.638295             -0.950000
-    # 2025-12-05 10:48:35  131.820760                 99.856578             -0.866667
-    # 2025-12-05 10:48:40  133.655785                101.246643             -0.783333
-    # 2025-12-05 10:48:45  136.755675                103.594864             -0.700000
+        #                        pressure  pressure_pct_of_baseline  Minutes_from_Gassing
+        # 2025-12-05 10:48:30  138.133109                104.638295             -0.950000
+        # 2025-12-05 10:48:35  131.820760                 99.856578             -0.866667
+        # 2025-12-05 10:48:40  133.655785                101.246643             -0.783333
+        # 2025-12-05 10:48:45  136.755675                103.594864             -0.700000
+
+#===================
+# batch-4 , 3rd : pressure-offset = 0  ( no need for calibration ).
+# but just for compatibility, a duplicate column with the name 'pressure_calibrated' was added to them.
+
+source_dir
+    # Out[54]: WindowsPath('F:/OneDrive - Uniklinik RWTH Aachen/home_cage/Stellar_notocord_tse/analysis__telemetry/dataframe/batch_4/terminal/2512058__SN_921536130')
+
+df_pulse_binned_5s['pressure_calibrated'] = df_pulse_binned_5s['pressure'] 
+df_pulse_binned_1s['pressure_calibrated'] = df_pulse_binned_1s['pressure'] 
+
+df_pulse_binned_5s.to_pickle( source_dir / "df_pulse_binned_5s.pkl" )
+df_pulse_binned_1s.to_pickle( source_dir / "df_pulse_binned_1s.pkl" )
+
+#====
+
+df_pulse_binned_5s.head()
+    # Out[51]: 
+    #                       pressure  pressure_pct_of_baseline  Minutes_from_Gassing  pressure_calibrated
+    # 2025-12-05 10:48:30 138.133109                104.638295             -0.950000           138.133109
+    # 2025-12-05 10:48:35 131.820760                 99.856578             -0.866667           131.820760
+    # 2025-12-05 10:48:40 133.655785                101.246643             -0.783333           133.655785
+    # 2025-12-05 10:48:45 136.755675                103.594864             -0.700000           136.755675
+    # 2025-12-05 10:48:50 139.746592                105.860537             -0.616667           139.746592
+
+
+df_pulse_binned_1s.head()
+    # Out[55]: 
+    #                       pressure  Minutes_from_Gassing  pressure_calibrated
+    # 2025-12-05 10:48:33        NaN             -0.900000                  NaN
+    # 2025-12-05 10:48:34 138.133109             -0.883333           138.133109
+    # 2025-12-05 10:48:35 129.885842             -0.866667           129.885842
+    # 2025-12-05 10:48:36 126.532331             -0.850000           126.532331
+    # 2025-12-05 10:48:37 133.489083             -0.833333           133.489083
+
+#=================================
 
 df_pulse_binned_5s['pressure'].plot()
 plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\pulse\batch_3\2509262\average_5s_.pdf' )
