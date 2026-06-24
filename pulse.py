@@ -607,7 +607,7 @@ df_pulse_binned_5s.attrs['gassing_start_windows']
     # Out[51]: Timestamp('2025-12-05 10:49:27')
 
 
-# %%
+# %%'
 
 df_pulse_binned_5s['pressure_pct_of_baseline'].plot()
 
@@ -616,5 +616,5 @@ output_name = 'average_pulse_5s.pdf'
 plt.savefig( output_dir / output_name  )
 
 
-# %%
+# %%'
 

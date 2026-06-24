@@ -18,18 +18,16 @@ from datetime import timedelta
 
 file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\nss-edf\convert\2508171\2508171 - 1.edf'
 
-# batch-4
-file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4\conversion\sacrifice\2512054__SN_920336131__.edf'
-file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4\conversion\sacrifice\2512055__SN_920536131__.edf'
-file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4\conversion\sacrifice\2512058__SN_921536130__.edf'
-
-
 # batch-3
 file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_3\conversion\sacrifice\2509262__SN_921336130__.edf'
 file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_3\conversion\sacrifice\2509264__SN_920336131__.edf'
 file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_3\conversion\sacrifice\2509265__SN_920536131__.edf'
 
 
+# batch-4
+file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4\conversion\sacrifice\2512054__SN_920336131__.edf'
+file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4\conversion\sacrifice\2512055__SN_920536131__.edf'
+file_path = r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4\conversion\sacrifice\2512058__SN_921536130__.edf'
 
 
 # %% explore_file
@@ -93,6 +91,8 @@ explore_file(file_path, h=0, m=0, s=0, windows_is_ahead=True)
 # %% process the signal
 # %%% band-pass filter
 
+# note : a function was created based on this, in te cell below.
+
 f = pyedflib.EdfReader(file_path)
 raw_trace = f.readSignal(1)
 
@@ -125,6 +125,59 @@ ecg_final = signal.sosfiltfilt(
                                 sos=sos_bp, 
                                 x= raw_trace         # ecg_notched
 )
+
+# %%% function
+
+# function created based on the cell above.
+
+# import pyedflib
+# from scipy import signal
+# from pathlib import Path
+
+def process_ecg_signal(file_path,  # string ( not path object ).
+                       channel=1, 
+                       lowcut=1, 
+                       highcut=80, 
+                       order=4):
+    """
+    Loads an ECG signal from an EDF file and applies a Butterworth bandpass filter.
+    
+    Parameters:
+        file_path (str or Path): Path to the .edf file.
+        channel (int): Channel index for the ECG (default is 1).
+        lowcut (float): Lower frequency bound for baseline removal.
+        highcut (float): Upper frequency bound for high-frequency noise removal.
+        order (int): Order of the Butterworth filter.
+        
+    Returns:
+        ecg_final (numpy array): The filtered ECG signal.
+        sfreq (float): The sampling frequency of the signal.
+    """
+    # --- 1. Load Signal ---
+    f = pyedflib.EdfReader(str(file_path))
+    sfreq = f.getSampleFrequency(channel)
+    raw_trace = f.readSignal(channel)
+    f.close()
+
+    # --- 2. Design the Bandpass Filter ---
+    # N: Order of the filter
+    # Wn: Critical frequencies 
+    # btype: Type of filter ('bandpass')
+    # fs: Sampling frequency
+    # output: 'sos' (Second-Order Sections) for numerical stability
+    sos_bp = signal.butter(
+        N=order, 
+        Wn=[lowcut, highcut], 
+        btype='bandpass', 
+        fs=sfreq, 
+        output='sos'
+    )
+
+    # --- 3. Apply the Filter ---
+    # sosfiltfilt applies the filter forward and backward to ensure zero phase shift
+    ecg_final = signal.sosfiltfilt(sos=sos_bp, x=raw_trace)
+
+    return ecg_final, sfreq
 
 
 # %% plot
@@ -210,6 +263,42 @@ plot_ecg_segment_2(
 # plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\batch_3\terminal\2509264__SN_920336131\ecg_9_.pdf' )
 plt.savefig( r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\nss-edf\error__conversion\conversion_test\resolved__2511201_.pdf' )
 
+# %% explore trace
+
+# suppose you check average heart-rate traces & find suspicious segments.
+# here, you can explorethe raw ECG segment.
+
+# 1: load the path of the raw .edf file from : here | path .
+# 2: check the corresponding tables to get : 
+        # the channel of interest : 
+        # acq_gass_offset_s
+    # F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_3  \  print__table_batch_3__2  .docx - Verknüpfung
+    # F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\save_notocord\batch_4  \  print__table_batch_4  .docx
+# 3: load the 2 functions below.
+
+#===================================================
+
+
+# 1. Process the entire file automatically
+ecg_final, sfreq = process_ecg_signal(file_path = file_path ,
+                                      channel=1)
+#===================================================
+
+# 2. View the specific segment of interest
+plot_ecg_segment_2(signal=ecg_final, 
+                   acq_gass_offset_s=1866,
+                   sfreq=sfreq, # Passed dynamically from the processing function
+                   start_s=0, # The suspicious timepoint you saw on your plot
+                   duration_s=30 # Shortened window to see individual beats clearly
+                   )
+#===================================================
+
+
+# %%% save
+
+output_dir_plot = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\plot\batch_3\terminal\2509262__SN_921336130')
+file_name = 'ecg_segment_0_30_3.pdf'
+plt.savefig( output_dir_plot / file_name)
 
 # %% convert : csv => pickle
 
