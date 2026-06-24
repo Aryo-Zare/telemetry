@@ -2,17 +2,6 @@
 
 # %% load
 
-
-#=====================================================
-#---- batch_4 , 3rd
-
-source_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512058__SN_921536130')
-# seemingly this file only has attributes added to, otherwise, it's the same as : HR_Analysis_10s_from_1049.pkl .
-df_HR_10s = pd.read_pickle( source_dir / 'df_HR_10s.pkl' )
-df_pulse_binned_5s = pd.read_pickle( source_dir / "df_pulse_binned_5s.pkl" )
-df_pulse_binned_1s = pd.read_pickle( source_dir / "df_pulse_binned_1s.pkl" )
-
-
 #=====================================================
 #---- batch_3 , 1st
 
@@ -21,6 +10,11 @@ df_HR_10s = pd.read_pickle( source_dir / 'HR_Analysis_10s_from_0945.pkl' )
 df_pulse_binned_5s = pd.read_pickle( source_dir / "df_pulse_binned_5s.pkl" )
 df_pulse_binned_1s = pd.read_pickle( source_dir / "df_pulse_binned_1s.pkl" )
 
+#=====================================================
+#---- batch_3 , 2nd
+
+source_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_3\terminal\2509264__SN_920336131')
+df_HR_10s = pd.read_pickle( source_dir / 'HR_Analysis_10s_from_1024.pkl' )
 
 #=====================================================
 #---- batch_3 , 3rd
@@ -30,51 +24,38 @@ df_HR_10s = pd.read_pickle( source_dir / 'HR_Analysis_10s_from_1100.pkl' )
 df_pulse_binned_5s = pd.read_pickle( source_dir / "df_pulse_binned_5s.pkl" )
 df_pulse_binned_1s = pd.read_pickle( source_dir / "df_pulse_binned_1s.pkl" )
 
+#=====================================================
+#---- batch_4 , 1st
+
+source_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512054__SN_920336131')
+df_HR_10s = pd.read_pickle( source_dir / 'HR_Analysis_10s_from_0941.pkl' )
+
+#=====================================================
+#---- batch_4 , 2nd
+
+source_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512055__SN_920536131')
+df_HR_10s = pd.read_pickle( source_dir / 'HR_Analysis_10s_from_1014.pkl' )
+
+#=====================================================
+#---- batch_4 , 3rd
+
+source_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512058__SN_921536130')
+# seemingly this file only has attributes added to, otherwise, it's the same as : HR_Analysis_10s_from_1049.pkl .
+df_HR_10s = pd.read_pickle( source_dir / 'HR_Analysis_10s_from_1049.pkl' )
+df_pulse_binned_5s = pd.read_pickle( source_dir / "df_pulse_binned_5s.pkl" )
+df_pulse_binned_1s = pd.read_pickle( source_dir / "df_pulse_binned_1s.pkl" )
+
+
+#====================
+# FileNotFoundError:  initially files were saved in csv !    
+
 # %%'
 
 df_peaks = pd.read_csv( source_dir / "Master_Peak_Log.csv.gz", parse_dates=['timestamp'])
 df_dropouts = pd.read_csv( source_dir / "Dropout_Map.csv", parse_dates=['start', 'end'])
 
 # %% attach attributes
-# %%%'
-
-# batch-4 , 3rd.
-
-source_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512058__SN_921536130')
-file_name='HR_Analysis_10s_from_1049.csv'
-df_HR_10s = pd.read_csv(source_dir / file_name , parse_dates=['Bin_Start', 'Bin_End'])
-
-dict_attrs = {'path':'batch_4\terminal\2512058__SN_921536130',
-              'rec_start_windows': pd.Timestamp('2025-12-05 10:48:33'),
-              'gassing_start_windows': pd.Timestamp('2025-12-05 10:49:27')}
-
-df_HR_10s.attrs = dict_attrs
-
-file_name='HR_Analysis_10s_from_1049.pkl'
-df_HR_10s.to_pickle( source_dir / file_name  )
-
-# %%%'
-
-# batch-3 , 3rd.
-
-source_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_3\terminal\2509265__SN_920536131')
-file_name='HR_Analysis_10s_from_1100.csv'
-df_HR_10s = pd.read_csv(source_dir / file_name , parse_dates=['Bin_Start', 'Bin_End'])
-
-
-dict_attrs = {'path':'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_3\terminal\2509265__SN_920536131',
-              'rec_start_windows': pd.Timestamp('2025-09-26 10:58:53'),
-              'gassing_start_windows': pd.Timestamp('2025-09-26 11:00:30')}
-
-df_HR_10s.attrs = dict_attrs
-
-file_name='HR_Analysis_10s_from_1100.pkl'
-df_HR_10s.to_pickle( source_dir / file_name  )
-
-
-# %%%'
-
-# batch_3 , 1st
+# %%% batch_3 , 1st
 
 source_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_3\terminal\2509262__SN_921336130')
 file_name='HR_Analysis_10s_from_0945.csv'
@@ -90,6 +71,86 @@ df_HR_10s.attrs = dict_attrs
 file_name='HR_Analysis_10s_from_0945.pkl'
 df_HR_10s.to_pickle( source_dir / file_name  )
 
+# %%% batch_3 , 2nd
+
+source_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_3\terminal\2509264__SN_920336131')
+file_name='HR_Analysis_10s_from_1024.csv'
+df_HR_10s = pd.read_csv(source_dir / file_name , parse_dates=['Bin_Start', 'Bin_End'])
+
+
+dict_attrs = {'path':str(source_dir),
+              'rec_start_windows': pd.Timestamp('2025-09-26 10:22:02'),
+              'gassing_start_windows': pd.Timestamp('2025-09-26 10:24:00')}
+
+df_HR_10s.attrs = dict_attrs
+
+file_name='HR_Analysis_10s_from_1024.pkl'
+df_HR_10s.to_pickle( source_dir / file_name  )
+
+# %%% batch-3 , 3rd
+
+source_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_3\terminal\2509265__SN_920536131')
+file_name='HR_Analysis_10s_from_1100.csv'
+df_HR_10s = pd.read_csv(source_dir / file_name , parse_dates=['Bin_Start', 'Bin_End'])
+
+
+dict_attrs = {'path':str(source_dir),
+              'rec_start_windows': pd.Timestamp('2025-09-26 10:58:53'),
+              'gassing_start_windows': pd.Timestamp('2025-09-26 11:00:30')}
+
+df_HR_10s.attrs = dict_attrs
+
+file_name='HR_Analysis_10s_from_1100.pkl'
+df_HR_10s.to_pickle( source_dir / file_name  )
+
+
+# %%% batch-4 , 1st
+
+
+source_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512054__SN_920336131')
+file_name='HR_Analysis_10s_from_0941.csv'
+df_HR_10s = pd.read_csv(source_dir / file_name , parse_dates=['Bin_Start', 'Bin_End'])
+
+dict_attrs = {'path': str(source_dir),
+              'rec_start_windows': pd.Timestamp('2025-12-05 09:40:54'),
+              'gassing_start_windows': pd.Timestamp('2025-12-05 09:41:24')}
+
+df_HR_10s.attrs = dict_attrs
+
+file_name='HR_Analysis_10s_from_0941.pkl'
+df_HR_10s.to_pickle( source_dir / file_name  )
+
+
+# %%% batch-4 , 2nd
+
+source_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512055__SN_920536131')
+file_name='HR_Analysis_10s_from_1014.csv'
+df_HR_10s = pd.read_csv(source_dir / file_name , parse_dates=['Bin_Start', 'Bin_End'])
+
+dict_attrs = {'path' : str(source_dir),
+              'rec_start_windows': pd.Timestamp('2025-12-05 10:13:23'),
+              'gassing_start_windows': pd.Timestamp('2025-12-05 10:14:24')}
+
+df_HR_10s.attrs = dict_attrs
+
+file_name='HR_Analysis_10s_from_1014.pkl'
+df_HR_10s.to_pickle( source_dir / file_name  )
+
+
+# %%% batch-4 , 3rd
+
+source_dir = Path(r'F:\OneDrive - Uniklinik RWTH Aachen\home_cage\Stellar_notocord_tse\analysis__telemetry\dataframe\batch_4\terminal\2512058__SN_921536130')
+file_name='HR_Analysis_10s_from_1049.csv'
+df_HR_10s = pd.read_csv(source_dir / file_name , parse_dates=['Bin_Start', 'Bin_End'])
+
+dict_attrs = {'path': str(source_dir),
+              'rec_start_windows': pd.Timestamp('2025-12-05 10:48:33'),
+              'gassing_start_windows': pd.Timestamp('2025-12-05 10:49:27')}
+
+df_HR_10s.attrs = dict_attrs
+
+file_name='HR_Analysis_10s_from_1049.pkl'
+df_HR_10s.to_pickle( source_dir / file_name  )
 
 
 # %% check the time format
@@ -134,5 +195,5 @@ df_pulse_binned_5s.attrs = dict_attrs
 file_name= 'df_pulse_binned_5s.pkl'
 df_pulse_binned_5s.to_pickle( source_dir / file_name  )
 
-# %%
+# %%'
 
